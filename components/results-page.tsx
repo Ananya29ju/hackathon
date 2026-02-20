@@ -2,11 +2,6 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-<<<<<<< HEAD
-import { AlertCircle, Heart, RotateCcw, Calendar, Activity, Shield, Copy, CheckCircle2 } from 'lucide-react'
-import { useState } from 'react'
-import { getRiskCategory, getRiskColor, getRiskTextColor } from '@/lib/risk-calculator'
-=======
 import {
   Shield,
   Heart,
@@ -20,7 +15,6 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { getRiskCategory } from '@/lib/risk-calculator'
->>>>>>> origin/main
 import Speedometer from './ui/speedometer'
 import Header from './header'
 import { cn } from '@/lib/utils'
@@ -111,31 +105,6 @@ export default function ResultsPage({
 
   const category = getRiskCategory(score)
   const config = RISK_CONFIG[category]
-
-  const [copied, setCopied] = useState(false)
-
-  const handleCopySummary = () => {
-    const summary = `
-HEALTH ASSESSMENT SUMMARY (Educational Only)
-Date: ${new Date().toLocaleDateString()}
-Profile: ${results.age} yrs, BMI: ${results.bmi}
-
-PRIMARY ANALYSIS: ${isMenstrualOnly ? 'Hormonal Stability' : primaryRiskData.name}
-Risk Category: ${primaryCategory.toUpperCase()}
-Risk Score: ${isMenstrualOnly ? menstrualScore : primaryRiskData.score}/100
-
-KEY MARKERS:
-- Menarche Age: ${results.menarcheAgeGroup || results.menarcheAge || 'N/A'}
-- Cycle Status: ${results.cycleLength || results.maturePeriodRegularity || results.cycleRegularity || 'N/A'}
-- Family History: ${results.familyHistoryBreast ? 'Breast Cancer (Yes)' : 'Breast Cancer (No)'}, ${results.familyHistoryOvarian ? 'Ovarian Cancer (Yes)' : 'Ovarian Cancer (No)'}
-
-NOTES: These results were generated using a digital self-assessment tool and are intended for clinical discussion.
-    `.trim()
-
-    navigator.clipboard.writeText(summary)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/30 via-background to-primary/5 selection:bg-primary/20">
@@ -249,127 +218,6 @@ NOTES: These results were generated using a digital self-assessment tool and are
                 </Button>
               ))}
             </div>
-<<<<<<< HEAD
-          </Card>
-        )}
-
-        {/* Assessment Details */}
-        <Card className="p-8 mb-8 relative">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Assessment Summary</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopySummary}
-              className="gap-2 rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all"
-            >
-              {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied' : 'Copy for Doctor'}
-            </Button>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Left Column */}
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">Personal Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Age</span>
-                    <span className="font-medium text-foreground">{results.age} years</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">BMI</span>
-                    <span className="font-medium text-foreground">{results.bmi}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Diabetes</span>
-                    <span className="font-medium text-foreground">
-                      {results.diabetic ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">Menstrual History</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Menarche Age</span>
-                    <span className="font-medium text-foreground">
-                      {results.menarcheAgeGroup || results.menarcheAge || 'N/A'} {results.menarcheAge ? 'years' : ''}
-                    </span>
-                  </div>
-                  {(results.menopauseAge || results.pmAge) && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Menopause Status</span>
-                      <span className="font-medium text-foreground">
-                        {results.pmAge ? `Post (${results.pmAge})` : `${results.menopauseAge} years`}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cycle Status</span>
-                    <span className="font-medium text-foreground">
-                      {results.cycleLength || results.maturePeriodRegularity || results.cycleRegularity || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-6">
-              {!isMenstrualOnly && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-3">Reproductive History</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Number of Children</span>
-                      <span className="font-medium text-foreground">
-                        {results.numberOfChildren}
-                      </span>
-                    </div>
-                    {results.ageFirstBirth && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">First Birth Age</span>
-                        <span className="font-medium text-foreground">
-                          {results.ageFirstBirth} years
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Hormone Therapy</span>
-                      <span className="font-medium text-foreground">
-                        {results.hormoneTherapy ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {!isMenstrualOnly && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-3">Family History</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Breast Cancer</span>
-                      <span className="font-medium text-foreground">
-                        {results.familyHistoryBreast ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Ovarian Cancer</span>
-                      <span className="font-medium text-foreground">
-                        {results.familyHistoryOvarian ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-=======
->>>>>>> origin/main
           </div>
         </Card>
 

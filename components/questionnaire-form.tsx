@@ -335,12 +335,8 @@ export default function QuestionnaireForm({
         onNavigate={onNavigate}
         onStartAssessment={onStartAssessment}
         showNav={true}
-<<<<<<< HEAD
-        progress={(step / totalSteps) * 100}
-=======
         isLoggedIn={isLoggedIn}
         userName={userName}
->>>>>>> origin/main
       />
       <div className="flex-1 flex flex-col items-center p-6 md:p-12">
         <div className="w-full max-w-2xl space-y-10">
