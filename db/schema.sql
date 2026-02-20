@@ -52,6 +52,10 @@ create table if not exists public.assessments (
   endometrial_risk_score float,
   primary_risk text,
   
+  -- Geographic Data
+  latitude float,
+  longitude float,
+  
   created_at timestamptz default now()
 );
 
@@ -59,13 +63,13 @@ create table if not exists public.assessments (
 alter table public.assessments enable row level security;
 
 -- Assessments policies
-drop policy if exists "Users can view own assessments." on public.assessments;
-create policy "Users can view own assessments." on public.assessments
-  for select using (auth.uid() = user_id);
-
 drop policy if exists "Users can insert own assessments." on public.assessments;
 create policy "Users can insert own assessments." on public.assessments
   for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Public can view heatmap data." on public.assessments;
+create policy "Public can view heatmap data." on public.assessments
+  for select using (true);
 
 -- Regional Cancer Prevalence (Heatmap data)
 create table if not exists public.regional_stats (

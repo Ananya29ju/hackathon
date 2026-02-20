@@ -29,15 +29,25 @@ export default function LoginPage() {
     setLoadingLocal(true)
     setMessage(null)
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            role: role
+          }
+        }
+      })
       if (error) throw error
 
-      const userId = (data as any)?.user?.id || (data as any)?.id
+      const userId = data?.user?.id
       if (userId) {
         await supabase.from('profiles').upsert({ id: userId, email, name, role })
       }
 
-      setMessage({ type: 'success', text: 'Sign-up successful! Check your email for confirmation.' })
+      // Redirect directly to main page
+      router.push('/')
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || String(err) })
     } finally {
@@ -63,7 +73,12 @@ export default function LoginPage() {
   if (!loading && user) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10 flex flex-col">
-        <Header showNav={false} onNavigate={() => router.push('/')} />
+        <Header
+          showNav={false}
+          onNavigate={() => router.push('/')}
+          isLoggedIn={true}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="w-full max-w-md shadow-2xl border-primary/20 bg-white/80 dark:bg-black/40 backdrop-blur-xl rounded-[2rem]">
             <CardHeader className="text-center">
@@ -92,7 +107,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10 flex flex-col">
-      <Header showNav={false} onNavigate={() => router.push('/')} />
+      <Header showNav={false} onNavigate={() => router.push('/')} isLoggedIn={false} />
       <div className="flex-1 flex items-center justify-center p-4 py-12">
         <div className="w-full max-w-md space-y-8 animate-in fade-in duration-700">
           <div className="text-center space-y-2">
@@ -163,7 +178,7 @@ export default function LoginPage() {
                   <CardContent className="space-y-5">
                     <div className="space-y-2">
                       <Label className="font-bold text-foreground/70 px-1">I am a...</Label>
-                      <Select onValueChange={(value) => setRole(value as any)} defaultValue={role}>
+                      <Select onValueChange={(value: string) => setRole(value as any)} defaultValue={role}>
                         <SelectTrigger className="h-12 rounded-xl bg-white/50">
                           <SelectValue placeholder="Select your role" />
                         </SelectTrigger>
@@ -184,10 +199,10 @@ export default function LoginPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="font-bold text-foreground/70 px-1">Full Name</Label>
+                      <Label htmlFor="name" className="font-bold text-foreground/70 px-1">Username</Label>
                       <Input
                         id="name"
-                        placeholder="Ananya Sharma"
+                        placeholder="Choose a username"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="h-12 rounded-xl bg-white/50 border-muted focus:border-primary"

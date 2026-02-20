@@ -2,11 +2,28 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+<<<<<<< HEAD
 import { AlertCircle, Heart, RotateCcw, Calendar, Activity, Shield, Copy, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { getRiskCategory, getRiskColor, getRiskTextColor } from '@/lib/risk-calculator'
+=======
+import {
+  Shield,
+  Heart,
+  Leaf,
+  Activity,
+  RotateCcw,
+  Calendar,
+  MapPin,
+  FileText,
+  Stethoscope,
+  AlertCircle
+} from 'lucide-react'
+import { getRiskCategory } from '@/lib/risk-calculator'
+>>>>>>> origin/main
 import Speedometer from './ui/speedometer'
 import Header from './header'
+import { cn } from '@/lib/utils'
 
 interface ResultsPageProps {
   results: any
@@ -15,6 +32,63 @@ interface ResultsPageProps {
   onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
   onContinueToCancer?: () => void
   showCancerPrompt?: boolean
+  isLoggedIn?: boolean
+  userName?: string
+}
+
+const RISK_CONFIG = {
+  low: {
+    color: "emerald",
+    badgeLabel: "Low Risk",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-300 dark:border-emerald-900/30",
+    message: "Your responses do not indicate significant warning signs at this time.",
+    support: "Maintaining regular health check-ups and a balanced lifestyle will help you stay on track.",
+    recommendation: "We recommend continuing routine screenings and monitoring any new or unusual symptoms.",
+    icon: <Shield className="w-6 h-6 text-emerald-500" />,
+    buttons: [
+      { label: "Schedule Routine Check-up", icon: <Calendar className="w-4 h-4 text-emerald-400" /> },
+      { label: "View Preventive Care Tips", icon: <Heart className="w-4 h-4 text-emerald-400" /> }
+    ]
+  },
+  moderate: {
+    color: "amber",
+    badgeLabel: "Health Check Recommended",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-900/30",
+    message: "Some of your responses suggest patterns that would benefit from medical evaluation.",
+    support: "Early consultation provides clarity, reassurance, and better preventive care.",
+    recommendation: "We recommend scheduling a gynecological consultation within the next few weeks for further assessment.",
+    icon: <Activity className="w-6 h-6 text-amber-500" />,
+    buttons: [
+      { label: "Find Nearby Women’s Clinics", icon: <MapPin className="w-4 h-4 text-amber-400" /> },
+      { label: "Download Your Report", icon: <FileText className="w-4 h-4 text-amber-400" /> }
+    ]
+  },
+  high: {
+    color: "rose",
+    badgeLabel: "Professional Consultation Advised",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-300 dark:border-rose-900/30",
+    message: "Your responses indicate certain symptoms that should be evaluated by a healthcare professional.",
+    support: "Many conditions are manageable when identified early. Taking timely action supports better outcomes.",
+    recommendation: "Please consider booking a consultation with a qualified gynecologist or oncologist for a detailed examination.",
+    icon: <AlertCircle className="w-6 h-6 text-rose-500" />,
+    buttons: [
+      { label: "Locate Nearby Hospitals", icon: <MapPin className="w-4 h-4 text-rose-400" /> },
+      { label: "Contact a Specialist", icon: <Stethoscope className="w-4 h-4 text-rose-400" /> }
+    ]
+  },
+  critical: {
+    color: "rose",
+    badgeLabel: "Urgent Attention Needed",
+    badgeClass: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900/50",
+    message: "Your responses indicate multiple symptoms that require immediate clinical evaluation.",
+    support: "Taking prompt action is the most important step. Many conditions are highly treatable when addressed quickly.",
+    recommendation: "Please contact a healthcare professional or visit a women's health clinic immediately for a comprehensive examination.",
+    icon: <AlertCircle className="w-8 h-8 text-rose-600" />,
+    buttons: [
+      { label: "Find Urgent Care", icon: <MapPin className="w-4 h-4 text-rose-500" /> },
+      { label: "Contact Oncology Specialist", icon: <Stethoscope className="w-4 h-4 text-rose-500" /> }
+    ]
+  }
 }
 
 export default function ResultsPage({
@@ -23,16 +97,20 @@ export default function ResultsPage({
   onNavigate,
   onStartAssessment,
   onContinueToCancer,
-  showCancerPrompt
+  showCancerPrompt,
+  isLoggedIn = false,
+  userName = 'User'
 }: ResultsPageProps) {
   const isMenstrualOnly = results.assessmentType === 'menstrual'
-  const primaryRisk = results.overallRisks.primaryRisk
-  const primaryRiskData = results.overallRisks.risks[primaryRisk]
 
-  // Scoring for menstrual only
-  const menstrualScore = results.menstrualRisk
-  const menstrualCategory = menstrualScore < 20 ? 'low' : menstrualScore < 50 ? 'moderate' : 'high'
-  const primaryCategory = isMenstrualOnly ? menstrualCategory : getRiskCategory(primaryRiskData.score)
+  // Overall score/category logic
+  const primaryRiskKey = results.overallRisks?.primaryRisk
+  const score = isMenstrualOnly
+    ? (results.menstrualRisk || 0)
+    : (results.overallRisks?.risks?.[primaryRiskKey]?.score || 0)
+
+  const category = getRiskCategory(score)
+  const config = RISK_CONFIG[category]
 
   const [copied, setCopied] = useState(false)
 
@@ -60,130 +138,118 @@ NOTES: These results were generated using a digital self-assessment tool and are
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-lavender-50 via-background to-pink-50 dark:from-lavender-950/10 dark:to-pink-950/10">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/30 via-background to-primary/5 selection:bg-primary/20">
       <Header
         onNavigate={onNavigate}
         onStartAssessment={onStartAssessment}
         showNav={true}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
       />
 
-      <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">
-        {/* Safety Notice */}
-        <Card className="rounded-3xl border-none bg-accent/30 backdrop-blur-sm p-6 shadow-none">
-          <div className="flex gap-4 items-center">
-            <div className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center text-accent-foreground">
-              <AlertCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-bold text-sm text-accent-foreground uppercase tracking-widest">Medical Note</h2>
-              <p className="text-sm text-foreground/70 leading-relaxed font-medium">
-                These results are educational tools. Please discuss them with your doctor for a professional evaluation.
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Primary Risk/Analysis Alert */}
-        <Card className="relative overflow-hidden p-10 rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 bg-white/80 dark:bg-black/40 backdrop-blur-xl">
-          <div className="absolute top-0 right-0 p-8 transform rotate-12 opacity-5 pointer-events-none">
-            <Heart className="w-32 h-32 text-primary" fill="currentColor" />
-          </div>
-
-          <div className="relative text-center space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-sm font-black uppercase tracking-[0.3em] text-muted-foreground/60">
-                {isMenstrualOnly ? 'Stability Analysis' : 'Risk Assessment'}
-              </h2>
-              <h1 className="text-4xl font-black tracking-tighter text-foreground">
-                {isMenstrualOnly ? 'Hormonal & Cycle Stability' : primaryRiskData.name}
-              </h1>
-            </div>
-
-            <div className="py-2">
-              <Speedometer
-                value={isMenstrualOnly ? menstrualScore : primaryRiskData.score}
-                riskCategory={primaryCategory}
-                label={isMenstrualOnly ? 'Stability Index' : 'Risk Index'}
-                size="lg"
-              />
-            </div>
-
-            <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full font-bold text-lg border-2 ${getRiskColor(primaryCategory)} ${getRiskTextColor(primaryCategory)}`}>
-              {primaryCategory.charAt(0).toUpperCase() + primaryCategory.slice(1)} {isMenstrualOnly ? 'Risk of Irregularity' : 'Risk Profile'}
-            </div>
-
-            <p className="max-w-lg mx-auto text-muted-foreground font-medium leading-relaxed italic">
-              {primaryCategory === 'low' && (
-                isMenstrualOnly
-                  ? '"Your cycle indicators appear healthy and regular. Continue monitoring and following up with regular checkups."'
-                  : '"Your assessment suggests a low risk profile. Continue regular screening with your healthcare provider."'
-              )}
-              {primaryCategory === 'moderate' && (
-                isMenstrualOnly
-                  ? '"There are some indicators of menstrual irregularity. Consider tracking your cycle more closely and discussing with your doctor."'
-                  : '"Your assessment suggests a moderate risk profile. Discuss screening options with your healthcare provider."'
-              )}
-              {primaryCategory === 'high' && (
-                isMenstrualOnly
-                  ? '"Multiple factors suggest potential cycle health concerns. We recommend consulting with an OB-GYN for a detailed evaluation."'
-                  : '"Your assessment suggests a high risk profile. Schedule a consultation with your healthcare provider soon."'
-              )}
+      <main className="max-w-4xl mx-auto px-6 py-16 md:py-24 space-y-12 flex flex-col items-center">
+        {/* Header Section */}
+        <div className="text-center space-y-6 max-w-2xl animate-in fade-in slide-in-from-top-4 duration-1000">
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground transition-all">
+            Your Health Insight Summary
+          </h1>
+          <div className="space-y-3">
+            <p className="text-muted-foreground font-medium italic text-lg">
+              Important: Our tools are educational. Always consult a healthcare professional for clinical diagnosis.
+            </p>
+            <p className="text-primary/60 text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 bg-primary/5 py-2.5 px-6 rounded-full w-fit mx-auto border border-primary/10 shadow-sm">
+              <Activity className="w-3.5 h-3.5" />
+              AI-Generated Analysis: Use as educational guidance only
             </p>
           </div>
-        </Card>
+        </div>
 
-        {/* Associated Cancer Risks */}
-        {!isMenstrualOnly && (
-          <div className="grid md:grid-cols-3 gap-6">
-            {Object.entries(results.overallRisks.risks).map(([key, risk]: [string, any]) => {
-              const category = getRiskCategory(risk.score)
-              return (
-                <Card
-                  key={key}
-                  className="group p-8 rounded-[2rem] border-none bg-white/50 backdrop-blur-sm dark:bg-black/20 hover:shadow-xl transition-all duration-500"
-                >
-                  <h3 className="font-bold text-lg mb-6 tracking-tight text-center">{risk.name}</h3>
-                  <div className="mb-6 flex items-center justify-center">
-                    <Speedometer
-                      value={risk.score}
-                      riskCategory={category}
-                      size="sm"
-                    />
-                  </div>
-                  <div className={`text-center py-2 px-4 rounded-full text-xs font-black uppercase tracking-widest border ${getRiskColor(category)} ${getRiskTextColor(category)}`}>
-                    {category} Risk
-                  </div>
-                </Card>
-              )
-            })}
+        {/* Central Result Card */}
+        <Card className="w-full relative overflow-hidden p-8 md:p-14 rounded-[4rem] border-none shadow-2xl shadow-primary/5 bg-white/60 dark:bg-black/40 backdrop-blur-3xl animate-in zoom-in-95 duration-1000">
+          <div className="absolute -top-12 -right-12 p-8 opacity-5 pointer-events-none rotate-12">
+            <Shield className="w-64 h-64 text-primary" fill="currentColor" />
           </div>
-        )}
 
-        {isMenstrualOnly && (
-          <Card className="p-10 rounded-[2.5rem] border-pink-100 bg-pink-50/50 dark:bg-pink-950/10 dark:border-pink-900 shadow-none">
-            <h3 className="text-2xl font-black mb-8 text-pink-900 dark:text-pink-100 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-pink-200 dark:bg-pink-900 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-pink-500" />
-              </div>
-              Menstrual Health Markers
-            </h3>
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                { label: 'Menarche Age', value: `${results.menarcheAgeGroup || results.menarcheAge || 'N/A'} ${results.menarcheAge ? 'yr' : ''}`, icon: Calendar },
-                { label: 'Cycle Status', value: results.cycleLength || results.maturePeriodRegularity || results.cycleRegularity || 'N/A', icon: Activity },
-                { label: 'Menopause', value: results.periodsStopped === 'Yes' ? `Post (${results.pmAge || '45+'})` : 'Pre-menopausal', icon: Shield }
-              ].map((item, i) => (
-                <div key={i} className="p-6 bg-white rounded-3xl dark:bg-black/40 border border-pink-100/50 dark:border-pink-900/20 shadow-sm group hover:scale-105 transition-transform duration-300">
-                  <div className="w-8 h-8 rounded-xl bg-pink-50 dark:bg-pink-900/20 flex items-center justify-center mb-4 text-pink-400 group-hover:bg-primary group-hover:text-white transition-colors">
-                    <item.icon className="w-4 h-4" />
-                  </div>
-                  <p className="text-xs font-bold text-pink-600/50 dark:text-pink-400/50 uppercase tracking-widest mb-1">{item.label}</p>
-                  <p className="text-xl font-black text-pink-900 dark:text-pink-100 italic">
-                    {item.value}
-                  </p>
+          <div className="relative flex flex-col items-center space-y-12 text-center">
+            {/* Dynamic Speedometer - Only one as requested */}
+            {results.assessmentType === 'both' ? (
+              <div className="w-full flex flex-col md:flex-row items-center justify-center gap-12 py-10 scale-[0.85] md:scale-100 transition-all">
+                <div className="space-y-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-primary/60 text-center">Menstrual Health</p>
+                  <Speedometer
+                    value={results.menstrualRisk || 0}
+                    riskCategory={getRiskCategory(results.menstrualRisk || 0)}
+                    size="md"
+                    label="Menstrual Index"
+                  />
                 </div>
+                <div className="w-px h-32 bg-primary/10 hidden md:block" />
+                <div className="space-y-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-primary/60 text-center">Medical Screening</p>
+                  <Speedometer
+                    value={results.overallRisks?.risks?.[primaryRiskKey]?.score || 0}
+                    riskCategory={getRiskCategory(results.overallRisks?.risks?.[primaryRiskKey]?.score || 0)}
+                    size="md"
+                    label="Medical Risk Index"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="w-full flex justify-center py-4 transform scale-105 transition-transform duration-700 hover:scale-110">
+                <Speedometer
+                  value={score}
+                  riskCategory={category}
+                  size="lg"
+                  label={isMenstrualOnly ? "Menstrual Profile" : "Medical Risk Index"}
+                />
+              </div>
+            )}
+
+            {/* Risk Badge */}
+            <div className={cn(
+              "inline-flex items-center gap-3 px-10 py-5 rounded-full font-black text-xl md:text-2xl border transition-all duration-700 shadow-lg",
+              config.badgeClass,
+              "hover:shadow-xl hover:-translate-y-0.5"
+            )}>
+              <div className="animate-pulse">
+                {config.icon}
+              </div>
+              {config.badgeLabel}
+            </div>
+
+            {/* Messages */}
+            <div className="space-y-8 max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+              <p className="text-2xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
+                {config.message}
+              </p>
+
+              <p className="text-muted-foreground font-medium text-lg leading-relaxed">
+                {config.support}
+              </p>
+
+              <div className="p-10 rounded-[3rem] bg-secondary border border-secondary/50 text-secondary-foreground font-bold italic text-lg shadow-inner">
+                <span className="block text-[10px] font-black uppercase tracking-[0.3em] text-secondary-foreground/60 mb-4">Professional Guidance</span>
+                "{config.recommendation}"
+              </div>
+            </div>
+
+            {/* Dynamic Action Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700">
+              {config.buttons.map((btn, idx) => (
+                <Button
+                  key={idx}
+                  variant={idx === 0 ? "default" : "secondary"}
+                  className={cn(
+                    "h-20 rounded-[2rem] text-lg font-black gap-3 shadow-xl hover:scale-105 active:scale-95 transition-all",
+                    idx === 0 ? "bg-primary hover:bg-primary/90 text-white shadow-primary/20" : "bg-white/80 dark:bg-white/10 dark:text-white"
+                  )}
+                >
+                  {(btn as any).icon}
+                  {(btn as any).label}
+                </Button>
               ))}
             </div>
+<<<<<<< HEAD
           </Card>
         )}
 
@@ -302,63 +368,63 @@ NOTES: These results were generated using a digital self-assessment tool and are
                 </div>
               )}
             </div>
+=======
+>>>>>>> origin/main
           </div>
         </Card>
 
-        {/* Recommendations */}
-        <Card className="p-8 mb-8 border-primary/20 bg-primary/5 dark:bg-primary/10">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Next Steps</h2>
-          <ul className="space-y-4">
-            <li className="flex gap-3">
-              <div className="text-primary font-bold text-lg flex-shrink-0">1</div>
-              <div>
-                <p className="font-semibold text-foreground">Schedule an Appointment</p>
-                <p className="text-sm text-muted-foreground">
-                  Contact your healthcare provider to discuss these results and your personalized risk profile.
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <div className="text-primary font-bold text-lg flex-shrink-0">2</div>
-              <div>
-                <p className="font-semibold text-foreground">Discuss Screening Options</p>
-                <p className="text-sm text-muted-foreground">
-                  Your doctor can recommend appropriate screening tests and surveillance strategies based on your risk level.
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <div className="text-primary font-bold text-lg flex-shrink-0">3</div>
-              <div>
-                <p className="font-semibold text-foreground">Consider Preventive Measures</p>
-                <p className="text-sm text-muted-foreground">
-                  Discuss lifestyle modifications and preventive options with your healthcare team.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        {/* Supporting Secondary Actions */}
+        <div className="flex flex-col gap-6 items-center justify-center pt-8 animate-in fade-in duration-1000 delay-1000">
           {showCancerPrompt && onContinueToCancer && (
-            <Button
-              onClick={onContinueToCancer}
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 h-auto text-lg font-bold shadow-lg hover:scale-105 transition-all"
-            >
-              Check with Cancer Validation →
-            </Button>
+            <div className="flex flex-col items-center gap-4 text-center">
+              <p className="text-xl font-bold text-foreground">
+                Would you like to perform a SheShield Screening as well?
+              </p>
+              <Button
+                onClick={onContinueToCancer}
+                className="group h-16 px-10 rounded-[2rem] gap-3 bg-primary text-white font-black transition-all shadow-lg shadow-primary/20 hover:scale-105"
+              >
+                Yes, Start SheShield Scanning
+                <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              </Button>
+            </div>
           )}
-          <Button
-            onClick={onRetake}
-            variant="outline"
-            className="gap-2 h-auto py-3"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Retake Assessment
-          </Button>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
+              onClick={() => onNavigate('heatmap')}
+              variant="outline"
+              className="h-16 px-10 rounded-[2rem] gap-3 font-black text-primary border-primary/20 hover:bg-primary/5 transition-all hover:scale-105"
+            >
+              <MapPin className="w-5 h-5" />
+              Explore Health Map
+            </Button>
+            <Button
+              onClick={onRetake}
+              variant="ghost"
+              className="h-16 px-10 rounded-[2rem] gap-3 font-black text-muted-foreground hover:bg-primary/5 transition-all hover:scale-105"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Retake Assessment
+            </Button>
+          </div>
         </div>
-      </div>
+
+        {/* Calming Icons Flow */}
+        <div className="flex justify-center gap-12 text-muted-foreground/30 py-4">
+          <Leaf className="w-8 h-8" />
+          <Heart className="w-8 h-8" />
+          <Shield className="w-8 h-8" />
+        </div>
+
+        {/* Footer Reassurance */}
+        <footer className="text-center py-8 max-w-md">
+          <p className="text-sm font-bold tracking-wide text-foreground/40 leading-relaxed uppercase space-x-1">
+            <span className="text-primary font-black">OVIRA</span>
+            <span>supports early awareness and preventive care. You are taking a positive step toward your health.</span>
+          </p>
+        </footer>
+      </main>
     </div>
   )
 }

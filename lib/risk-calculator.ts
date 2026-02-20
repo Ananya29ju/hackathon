@@ -122,6 +122,10 @@ export function calculateBreastCancerRisk(factors: {
   lateFirstBirth: boolean
   age: number
   bmiCategory: 'normal' | 'overweight' | 'obese'
+  // New symptom factors
+  breastChange?: string
+  nippleDischarge?: string
+  familyHistoryCancer?: string
 }): { score: number; percentage: string } {
   let score = 10 // Base score
 
@@ -132,6 +136,17 @@ export function calculateBreastCancerRisk(factors: {
   if (factors.age >= 50) score += 15
   if (factors.bmiCategory === 'overweight') score += 5
   if (factors.bmiCategory === 'obese') score += 12
+
+  // Integrate new symptoms
+  if (factors.breastChange === 'Yes, small change') score += 15
+  if (factors.breastChange === 'Yes, clear lump/change') score += 40
+  if (factors.breastChange === 'Not sure') score += 5
+
+  if (factors.nippleDischarge === 'Mild') score += 5
+  if (factors.nippleDischarge === 'Sometimes') score += 10
+  if (factors.nippleDischarge === 'Persistent/abnormal') score += 25
+
+  if (factors.familyHistoryCancer === 'Multiple cases') score += 15
 
   const capped = Math.min(score, 100)
   const percentage = capped.toFixed(1)
@@ -147,6 +162,11 @@ export function calculateOvarianCancerRisk(factors: {
   age: number
   hormoneTherapy: boolean
   irregularMenses: boolean
+  // New symptom factors
+  bloatingSwelling?: string
+  pelvicPain?: string
+  weightLossFatigue?: string
+  pastReproductiveIssues?: string
 }): { score: number; percentage: string } {
   let score = 8 // Base score
 
@@ -156,6 +176,19 @@ export function calculateOvarianCancerRisk(factors: {
   if (factors.age >= 45) score += 18
   if (factors.hormoneTherapy) score += 8
   if (factors.irregularMenses) score += 10
+
+  // Integrate new symptoms
+  if (factors.bloatingSwelling === 'Sometimes') score += 5
+  if (factors.bloatingSwelling === 'Often') score += 10
+  if (factors.bloatingSwelling === 'Persistent') score += 20
+
+  if (factors.pelvicPain === 'Often') score += 8
+  if (factors.pelvicPain === 'Severe/persistent') score += 15
+
+  if (factors.weightLossFatigue === 'Significant') score += 10
+
+  if (factors.pastReproductiveIssues === 'Recurrent') score += 5
+  if (factors.pastReproductiveIssues === 'Serious/treated') score += 10
 
   const capped = Math.min(score, 100)
   const percentage = capped.toFixed(1)
@@ -170,6 +203,10 @@ export function calculateEndometrialCancerRisk(factors: {
   diabetic: boolean
   nulliparity: boolean
   irregularMenses: boolean
+  // New symptom factors
+  abnormalBleeding?: string
+  pelvicPain?: string
+  hormonalHistory?: string
 }): { score: number; percentage: string } {
   let score = 10 // Base score
 
@@ -179,6 +216,14 @@ export function calculateEndometrialCancerRisk(factors: {
   if (factors.diabetic) score += 15
   if (factors.nulliparity) score += 8
   if (factors.irregularMenses) score += 12
+
+  // Integrate new symptoms
+  if (factors.abnormalBleeding === 'Once') score += 10
+  if (factors.abnormalBleeding === 'Occasionally') score += 15
+  if (factors.abnormalBleeding === 'Frequent') score += 30
+
+  if (factors.pelvicPain === 'Severe/persistent') score += 10
+  if (factors.hormonalHistory === 'Longterm/severe') score += 10
 
   const capped = Math.min(score, 100)
   const percentage = capped.toFixed(1)
@@ -221,13 +266,14 @@ export function calculateOverallRisks(
   return { risks, primaryRisk }
 }
 
-export function getRiskCategory(score: number): 'low' | 'moderate' | 'high' {
+export function getRiskCategory(score: number): 'low' | 'moderate' | 'high' | 'critical' {
   if (score < 20) return 'low'
-  if (score < 50) return 'moderate'
-  return 'high'
+  if (score < 45) return 'moderate'
+  if (score < 75) return 'high'
+  return 'critical'
 }
 
-export function getRiskColor(category: 'low' | 'moderate' | 'high'): string {
+export function getRiskColor(category: 'low' | 'moderate' | 'high' | 'critical'): string {
   switch (category) {
     case 'low':
       return 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900'
@@ -235,10 +281,12 @@ export function getRiskColor(category: 'low' | 'moderate' | 'high'): string {
       return 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
     case 'high':
       return 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
+    case 'critical':
+      return 'bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900'
   }
 }
 
-export function getRiskTextColor(category: 'low' | 'moderate' | 'high'): string {
+export function getRiskTextColor(category: 'low' | 'moderate' | 'high' | 'critical'): string {
   switch (category) {
     case 'low':
       return 'text-green-900 dark:text-green-200'
@@ -246,5 +294,7 @@ export function getRiskTextColor(category: 'low' | 'moderate' | 'high'): string 
       return 'text-amber-900 dark:text-amber-200'
     case 'high':
       return 'text-red-900 dark:text-red-200'
+    case 'critical':
+      return 'text-purple-900 dark:text-purple-200'
   }
 }
