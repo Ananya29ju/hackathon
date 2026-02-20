@@ -4,7 +4,7 @@ export function calculateMenstrualRisk(
   menopauseAge: number | null,
   cycleRegularity: 'regular' | 'irregular'
 ): number {
-  let score = 0 
+  let score = 0
 
   // Earlier menarche increases risk (2 points per year below 12)
   if (menarcheAge < 12) {
@@ -52,6 +52,36 @@ export function calculateYoungMenstrualRisk(data: any): number {
   score += (m.pcod as any)[data.pcodPcosDiagnosis] || 0
 
   return Math.min(score, 50) // Cap at 50 for this detailed assessment
+}
+
+export function calculateMatureMenstrualRisk(data: any): number {
+  let score = 0
+
+  const m = {
+    regularity: { 'Yes, very regular': 0, 'Slightly irregular': 3, 'Often irregular': 6, 'Frequently missed': 10 },
+    length: { 'Yes': 0, 'Less than 21 days': 4, 'More than 35 days': 4, 'Not sure': 2 },
+    heavy: { 'No': 0, 'Sometimes': 3, 'Often': 6, 'Very heavy with clots': 10 },
+    duration: { 'No (2–5 days)': 0, '6–7 days': 3, '8–10 days': 6, 'More than 10 days': 10 },
+    missed: { 'Never': 0, 'Rarely': 2, 'Sometimes': 5, 'Frequently': 8 },
+    pain: { 'No pain': 0, 'Mild pain': 2, 'Moderate pain': 5, 'Severe pain affecting routine': 10 },
+    weight: { 'No': 0, 'Slight': 2, 'Moderate': 5, 'Significant': 8 },
+    hair: { 'No': 0, 'Mild': 2, 'Moderate': 5, 'Severe': 8 },
+    pcod: { 'No': 0, 'Suspected': 4, 'Yes (mild)': 7, 'Yes (diagnosed)': 10 },
+    family: { 'No': 0, 'Yes (distant relative)': 5, 'Yes (close family member)': 10, 'Not sure': 3 }
+  }
+
+  score += (m.regularity as any)[data.maturePeriodRegularity] || 0
+  score += (m.length as any)[data.matureCycleLength] || 0
+  score += (m.heavy as any)[data.matureHeavyBleeding] || 0
+  score += (m.duration as any)[data.matureDuration] || 0
+  score += (m.missed as any)[data.matureMissedPeriods] || 0
+  score += (m.pain as any)[data.maturePain] || 0
+  score += (m.weight as any)[data.matureWeightGain] || 0
+  score += (m.hair as any)[data.matureHairAcne] || 0
+  score += (m.pcod as any)[data.maturePcod] || 0
+  score += (m.family as any)[data.matureFamilyHistory] || 0
+
+  return Math.min(score, 60) // Slightly higher cap for mature assessment
 }
 
 // Breast cancer risk scoring

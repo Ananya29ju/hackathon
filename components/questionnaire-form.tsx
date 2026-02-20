@@ -14,7 +14,61 @@ import {
   calculateEndometrialCancerRisk,
   calculateOverallRisks,
   calculateYoungMenstrualRisk,
+  calculateMatureMenstrualRisk,
 } from '@/lib/risk-calculator'
+
+const MENSTRUAL_QUESTIONS_MATURE = [
+  {
+    id: 'maturePeriodRegularity',
+    label: '1. Are your periods coming regularly every month?',
+    options: ['Yes, very regular', 'Slightly irregular', 'Often irregular', 'Frequently missed']
+  },
+  {
+    id: 'matureCycleLength',
+    label: '2. Is your cycle usually between 21–35 days?',
+    options: ['Yes', 'Less than 21 days', 'More than 35 days', 'Not sure']
+  },
+  {
+    id: 'matureHeavyBleeding',
+    label: '3. Do you experience very heavy bleeding?',
+    options: ['No', 'Sometimes', 'Often', 'Very heavy with clots']
+  },
+  {
+    id: 'matureDuration',
+    label: '4. Do your periods last more than 7 days?',
+    options: ['No (2–5 days)', '6–7 days', '8–10 days', 'More than 10 days']
+  },
+  {
+    id: 'matureMissedPeriods',
+    label: '5. Do you often miss periods for 2 months or more?',
+    options: ['Never', 'Rarely', 'Sometimes', 'Frequently']
+  },
+  {
+    id: 'maturePain',
+    label: '6. Do you experience severe menstrual pain?',
+    options: ['No pain', 'Mild pain', 'Moderate pain', 'Severe pain affecting routine']
+  },
+  {
+    id: 'matureWeightGain',
+    label: '7. Have you noticed unusual weight gain?',
+    options: ['No', 'Slight', 'Moderate', 'Significant']
+  },
+  {
+    id: 'matureHairAcne',
+    label: '8. Do you have excessive hair growth or severe acne?',
+    options: ['No', 'Mild', 'Moderate', 'Severe']
+  },
+  {
+    id: 'maturePcod',
+    label: '9. Have you been diagnosed with PCOD/PCOS?',
+    options: ['No', 'Suspected', 'Yes (mild)', 'Yes (diagnosed)']
+  },
+  {
+    id: 'matureFamilyHistory',
+    label: '10. Family history of breast/ovarian/uterine cancer?',
+    options: ['No', 'Yes (distant relative)', 'Yes (close family member)', 'Not sure']
+  }
+]
 
 const MENSTRUAL_QUESTIONS_YOUNG = [
   {
@@ -94,6 +148,18 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
     facialHairAcne: '',
     missedPeriodsLong: '',
     pcodPcosDiagnosis: '',
+    // Mature Menstrual (40+)
+    periodsStopped: '',
+    maturePeriodRegularity: '',
+    matureCycleLength: '',
+    matureHeavyBleeding: '',
+    matureDuration: '',
+    matureMissedPeriods: '',
+    maturePain: '',
+    matureWeightGain: '',
+    matureHairAcne: '',
+    maturePcod: '',
+    matureFamilyHistory: '',
     // Medical History
     diabetic: false,
     // BMI
@@ -112,8 +178,15 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
   const isMenstrual = assessmentType === 'menstrual'
   const ageNum = parseInt(formData.age) || 0
   const isYoungFlow = isMenstrual && ageNum >= 8 && ageNum <= 40
+  const isMatureFlow = isMenstrual && ageNum > 40
+  const periodsNotStopped = formData.periodsStopped === 'No'
+  const isMatureActiveFlow = isMatureFlow && periodsNotStopped
 
-  const totalSteps = isYoungFlow ? 4 : (assessmentType === 'menstrual' ? 2 : 5)
+  const totalSteps = isYoungFlow
+    ? 4
+    : isMatureFlow
+      ? (isMatureActiveFlow ? 5 : 2)
+      : (assessmentType === 'menstrual' ? 2 : 5)
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -165,6 +238,8 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
 
     if (isYoungFlow) {
       menstrualRisk = calculateYoungMenstrualRisk(formData)
+    } else if (isMatureActiveFlow) {
+      menstrualRisk = calculateMatureMenstrualRisk(formData)
     } else {
       menstrualRisk = calculateMenstrualRisk(
         parseInt(formData.menarcheAge) || 0,
@@ -185,7 +260,9 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
 
     const isIrregular = isYoungFlow
       ? (formData.periodRegularity === 'Often irregular' || formData.periodRegularity === 'Frequently missed')
-      : (formData.cycleRegularity === 'irregular')
+      : isMatureActiveFlow
+        ? (formData.maturePeriodRegularity === 'Often irregular' || formData.maturePeriodRegularity === 'Frequently missed')
+        : (formData.cycleRegularity === 'irregular')
 
     const ovarianRisk = calculateOvarianCancerRisk({
       familyHistoryOvarian: formData.familyHistoryOvarian,
@@ -226,18 +303,30 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
         if (isYoungFlow) {
           return !!(formData.menarcheAgeGroup && formData.cycleLength && formData.periodRegularity)
         }
+        if (isMatureFlow) {
+          return !!formData.periodsStopped
+        }
         return !!(formData.menarcheAge && formData.cycleRegularity)
       case 3:
         if (isYoungFlow) {
           return !!(formData.bleedingDuration && formData.bleedingHeaviness && formData.crampsSeverity)
+        }
+        if (isMatureActiveFlow) {
+          return !!(formData.maturePeriodRegularity && formData.matureCycleLength && formData.matureHeavyBleeding)
         }
         return !!(formData.height && formData.weight)
       case 4:
         if (isYoungFlow) {
           return !!(formData.weightGain && formData.facialHairAcne && formData.missedPeriodsLong && formData.pcodPcosDiagnosis)
         }
+        if (isMatureActiveFlow) {
+          return !!(formData.matureDuration && formData.matureMissedPeriods && formData.maturePain)
+        }
         return formData.numberOfChildren !== ''
       case 5:
+        if (isMatureActiveFlow) {
+          return !!(formData.matureWeightGain && formData.matureHairAcne && formData.maturePcod && formData.matureFamilyHistory)
+        }
         return true
       default:
         return false
@@ -245,6 +334,26 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
   }
 
   const renderQuestion = (q: typeof MENSTRUAL_QUESTIONS_YOUNG[0]) => (
+    <div key={q.id} className="space-y-3">
+      <Label className="text-base font-semibold text-foreground">{q.label}</Label>
+      <RadioGroup
+        value={(formData as any)[q.id]}
+        onValueChange={(value) => handleInputChange(q.id, value)}
+        className="grid grid-cols-1 md:grid-cols-2 gap-3"
+      >
+        {q.options.map((option) => (
+          <div key={option} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors">
+            <RadioGroupItem value={option} id={`${q.id}-${option}`} />
+            <Label htmlFor={`${q.id}-${option}`} className="font-normal cursor-pointer flex-1">
+              {option}
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
+    </div>
+  )
+
+  const renderCustomQuestion = (q: { id: string; label: string; options: string[] }) => (
     <div key={q.id} className="space-y-3">
       <Label className="text-base font-semibold text-foreground">{q.label}</Label>
       <RadioGroup
@@ -327,6 +436,15 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
                   <h2 className="text-2xl font-bold text-foreground">Cycle Overview</h2>
                   {MENSTRUAL_QUESTIONS_YOUNG.slice(0, 3).map(renderQuestion)}
                 </>
+              ) : isMatureFlow ? (
+                <>
+                  <h2 className="text-2xl font-bold text-foreground">Period Status</h2>
+                  {renderCustomQuestion({
+                    id: 'periodsStopped',
+                    label: 'Have your periods stopped?',
+                    options: ['Yes', 'No']
+                  })}
+                </>
               ) : (
                 <>
                   <h2 className="text-2xl font-semibold text-foreground">Menstrual History</h2>
@@ -387,13 +505,18 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
             </div>
           )}
 
-          {/* Step 3: Physical Health or Young Flow Part 2 */}
+          {/* Step 3: Physical Health or Mature Flow Part 2 */}
           {step === 3 && (
             <div className="space-y-8">
               {isYoungFlow ? (
                 <>
                   <h2 className="text-2xl font-bold text-foreground">Bleeding & Symptoms</h2>
                   {MENSTRUAL_QUESTIONS_YOUNG.slice(3, 6).map(renderQuestion)}
+                </>
+              ) : isMatureActiveFlow ? (
+                <>
+                  <h2 className="text-2xl font-bold text-foreground">Period Regularity</h2>
+                  {MENSTRUAL_QUESTIONS_MATURE.slice(0, 3).map((q) => renderCustomQuestion(q))}
                 </>
               ) : (
                 <>
@@ -467,7 +590,7 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
             </div>
           )}
 
-          {/* Step 4: Reproductive History or Young Flow Part 3 */}
+          {/* Step 4: Reproductive History or Mature Flow Part 3 */}
           {step === 4 && (
             <div className="space-y-8">
               {isYoungFlow ? (
@@ -475,6 +598,13 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
                   <h2 className="text-2xl font-bold text-foreground">Overall Symptoms & Diagnosis</h2>
                   <div className="space-y-6">
                     {MENSTRUAL_QUESTIONS_YOUNG.slice(6).map(renderQuestion)}
+                  </div>
+                </>
+              ) : isMatureActiveFlow ? (
+                <>
+                  <h2 className="text-2xl font-bold text-foreground">Bleeding & Pain</h2>
+                  <div className="space-y-6">
+                    {MENSTRUAL_QUESTIONS_MATURE.slice(3, 6).map((q) => renderCustomQuestion(q))}
                   </div>
                 </>
               ) : (
@@ -540,61 +670,72 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
             </div>
           )}
 
-          {/* Step 5: Family History */}
+          {/* Step 5: Family History or Mature Flow Part 4 */}
           {step === 5 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-foreground">Family Medical History</h2>
-              <div className="space-y-6">
-                <div>
-                  <Label className="text-base font-medium mb-3 block">
-                    Family history of breast cancer
-                  </Label>
-                  <RadioGroup
-                    value={formData.familyHistoryBreast ? 'yes' : 'no'}
-                    onValueChange={(value) =>
-                      handleInputChange('familyHistoryBreast', value === 'yes')
-                    }
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="no-breast-history" />
-                      <Label htmlFor="no-breast-history" className="font-normal cursor-pointer">
-                        No
+            <div className="space-y-8">
+              {isMatureActiveFlow ? (
+                <>
+                  <h2 className="text-2xl font-bold text-foreground">Overall Symptoms & Family History</h2>
+                  <div className="space-y-6">
+                    {MENSTRUAL_QUESTIONS_MATURE.slice(6).map((q) => renderCustomQuestion(q))}
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold text-foreground">Family Medical History</h2>
+                  <div className="space-y-6">
+                    <div>
+                      <Label className="text-base font-medium mb-3 block">
+                        Family history of breast cancer
                       </Label>
+                      <RadioGroup
+                        value={formData.familyHistoryBreast ? 'yes' : 'no'}
+                        onValueChange={(value) =>
+                          handleInputChange('familyHistoryBreast', value === 'yes')
+                        }
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="no-breast-history" />
+                          <Label htmlFor="no-breast-history" className="font-normal cursor-pointer">
+                            No
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="yes-breast-history" />
+                          <Label htmlFor="yes-breast-history" className="font-normal cursor-pointer">
+                            Yes
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes" id="yes-breast-history" />
-                      <Label htmlFor="yes-breast-history" className="font-normal cursor-pointer">
-                        Yes
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
 
-                <div>
-                  <Label className="text-base font-medium mb-3 block">
-                    Family history of ovarian cancer
-                  </Label>
-                  <RadioGroup
-                    value={formData.familyHistoryOvarian ? 'yes' : 'no'}
-                    onValueChange={(value) =>
-                      handleInputChange('familyHistoryOvarian', value === 'yes')
-                    }
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="no-ovarian-history" />
-                      <Label htmlFor="no-ovarian-history" className="font-normal cursor-pointer">
-                        No
+                    <div>
+                      <Label className="text-base font-medium mb-3 block">
+                        Family history of ovarian cancer
                       </Label>
+                      <RadioGroup
+                        value={formData.familyHistoryOvarian ? 'yes' : 'no'}
+                        onValueChange={(value) =>
+                          handleInputChange('familyHistoryOvarian', value === 'yes')
+                        }
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="no-ovarian-history" />
+                          <Label htmlFor="no-ovarian-history" className="font-normal cursor-pointer">
+                            No
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="yes-ovarian-history" />
+                          <Label htmlFor="yes-ovarian-history" className="font-normal cursor-pointer">
+                            Yes
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes" id="yes-ovarian-history" />
-                      <Label htmlFor="yes-ovarian-history" className="font-normal cursor-pointer">
-                        Yes
-                      </Label>
-                    </div>
-                  </RadioGroup>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
