@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Shield } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   calculateMenstrualRisk,
   calculateBreastCancerRisk,
@@ -15,7 +16,9 @@ import {
   calculateOverallRisks,
   calculateYoungMenstrualRisk,
   calculateMatureMenstrualRisk,
+  calculatePostMenopausalRisk,
 } from '@/lib/risk-calculator'
+import Header from './header'
 
 const MENSTRUAL_QUESTIONS_MATURE = [
   {
@@ -65,6 +68,59 @@ const MENSTRUAL_QUESTIONS_MATURE = [
   },
   {
     id: 'matureFamilyHistory',
+    label: '10. Family history of breast/ovarian/uterine cancer?',
+    options: ['No', 'Yes (distant relative)', 'Yes (close family member)', 'Not sure']
+  }
+]
+
+const MENSTRUAL_QUESTIONS_POST_MENOPAUSAL = [
+  {
+    id: 'pmAge',
+    label: '1. At what age did your periods completely stop?',
+    options: ['Below 45', '45–50', '51–55', 'Above 55']
+  },
+  {
+    id: 'pmBleeding',
+    label: '2. Have you had any vaginal bleeding or spotting after menopause?',
+    options: ['Never', 'Once', 'Occasionally', 'More than once']
+  },
+  {
+    id: 'pmPreRegularity',
+    label: '3. Before menopause, were your periods mostly irregular?',
+    options: ['No', 'Slightly irregular', 'Mostly irregular', 'Frequently missed']
+  },
+  {
+    id: 'pmPreHeavyBleeding',
+    label: '4. Did you experience very heavy bleeding before menopause?',
+    options: ['No', 'Sometimes', 'Often', 'Very heavy with clots']
+  },
+  {
+    id: 'pmPelvicPain',
+    label: '5. Do you currently feel persistent pelvic pain or pressure?',
+    options: ['Never', 'Occasionally', 'Often', 'Persistent/severe']
+  },
+  {
+    id: 'pmHrtUsage',
+    label: '6. Have you used hormone replacement therapy (HRT)?',
+    options: ['Never', 'Less than 1 year', '1–5 years', 'More than 5 years']
+  },
+  {
+    id: 'pmChronicConditions',
+    label: '7. Do you have diabetes, obesity, or high blood pressure?',
+    options: ['None', 'One condition', 'Two conditions', 'More than two']
+  },
+  {
+    id: 'pmWeightLossFatigue',
+    label: '8. Have you noticed unexplained weight loss or extreme fatigue recently?',
+    options: ['No', 'Mild', 'Moderate', 'Significant']
+  },
+  {
+    id: 'pmReproductiveDiagnoses',
+    label: '9. Have you ever been diagnosed with uterine fibroids, ovarian cysts, or endometrial thickening?',
+    options: ['No', 'Suspected', 'Yes (past)', 'Yes (currently)']
+  },
+  {
+    id: 'pmFamilyHistory',
     label: '10. Family history of breast/ovarian/uterine cancer?',
     options: ['No', 'Yes (distant relative)', 'Yes (close family member)', 'Not sure']
   }
@@ -126,11 +182,20 @@ const MENSTRUAL_QUESTIONS_YOUNG = [
 interface QuestionnaireFormProps {
   onSubmit: (data: any) => void
   assessmentType: 'menstrual' | 'cancer' | 'both'
+  onNavigate: (view: string) => void
+  onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
+  initialData?: any
 }
 
-export default function QuestionnaireForm({ onSubmit, assessmentType }: QuestionnaireFormProps) {
+export default function QuestionnaireForm({
+  onSubmit,
+  assessmentType,
+  onNavigate,
+  onStartAssessment,
+  initialData
+}: QuestionnaireFormProps) {
   const [step, setStep] = useState(1)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(initialData || {
     // Demographics
     age: '',
     // Menstrual History
@@ -160,6 +225,17 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
     matureHairAcne: '',
     maturePcod: '',
     matureFamilyHistory: '',
+    // Post-Menopausal (40+ & Periods Stopped)
+    pmAge: '',
+    pmBleeding: '',
+    pmPreRegularity: '',
+    pmPreHeavyBleeding: '',
+    pmPelvicPain: '',
+    pmHrtUsage: '',
+    pmChronicConditions: '',
+    pmWeightLossFatigue: '',
+    pmReproductiveDiagnoses: '',
+    pmFamilyHistory: '',
     // Medical History
     diabetic: false,
     // BMI
@@ -175,21 +251,28 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
     hormoneTherapy: false,
   })
 
-  const isMenstrual = assessmentType === 'menstrual'
   const ageNum = parseInt(formData.age) || 0
+  const isMenstrual = assessmentType === 'menstrual'
+  const isCancer = assessmentType === 'cancer'
+
   const isYoungFlow = isMenstrual && ageNum >= 8 && ageNum <= 40
   const isMatureFlow = isMenstrual && ageNum > 40
+  const periodsStopped = formData.periodsStopped === 'Yes'
   const periodsNotStopped = formData.periodsStopped === 'No'
   const isMatureActiveFlow = isMatureFlow && periodsNotStopped
+  const isPostMenopausalFlow = isMatureFlow && periodsStopped
 
-  const totalSteps = isYoungFlow
+  // Step counts for the menstrual portion
+  const menstrualStepCount = isYoungFlow
     ? 4
     : isMatureFlow
-      ? (isMatureActiveFlow ? 5 : 2)
-      : (assessmentType === 'menstrual' ? 2 : 5)
+      ? (isMatureActiveFlow || isPostMenopausalFlow ? 5 : 2)
+      : 2
+
+  const totalSteps = isMenstrual ? menstrualStepCount : 5
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev: any) => ({ ...prev, [field]: value }))
   }
 
   const handleNext = () => {
@@ -240,6 +323,8 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
       menstrualRisk = calculateYoungMenstrualRisk(formData)
     } else if (isMatureActiveFlow) {
       menstrualRisk = calculateMatureMenstrualRisk(formData)
+    } else if (isPostMenopausalFlow) {
+      menstrualRisk = calculatePostMenopausalRisk(formData)
     } else {
       menstrualRisk = calculateMenstrualRisk(
         parseInt(formData.menarcheAge) || 0,
@@ -262,7 +347,9 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
       ? (formData.periodRegularity === 'Often irregular' || formData.periodRegularity === 'Frequently missed')
       : isMatureActiveFlow
         ? (formData.maturePeriodRegularity === 'Often irregular' || formData.maturePeriodRegularity === 'Frequently missed')
-        : (formData.cycleRegularity === 'irregular')
+        : isPostMenopausalFlow
+          ? (formData.pmPreRegularity === 'Mostly irregular' || formData.pmPreRegularity === 'Frequently missed')
+          : (formData.cycleRegularity === 'irregular')
 
     const ovarianRisk = calculateOvarianCancerRisk({
       familyHistoryOvarian: formData.familyHistoryOvarian,
@@ -296,481 +383,580 @@ export default function QuestionnaireForm({ onSubmit, assessmentType }: Question
   }
 
   const canProceed = () => {
-    switch (step) {
-      case 1:
-        return formData.age && parseInt(formData.age) >= 8
-      case 2:
-        if (isYoungFlow) {
-          return !!(formData.menarcheAgeGroup && formData.cycleLength && formData.periodRegularity)
-        }
-        if (isMatureFlow) {
-          return !!formData.periodsStopped
-        }
+    // Phase 1: Demographics
+    if (step === 1) return formData.age && parseInt(formData.age) >= 8
+
+    // Unified flow per assessment module
+    if (isMenstrual) {
+      if (step === 2) {
+        if (isYoungFlow) return !!(formData.menarcheAgeGroup && formData.cycleLength && formData.periodRegularity)
+        if (isMatureFlow) return !!formData.periodsStopped
         return !!(formData.menarcheAge && formData.cycleRegularity)
-      case 3:
-        if (isYoungFlow) {
-          return !!(formData.bleedingDuration && formData.bleedingHeaviness && formData.crampsSeverity)
-        }
-        if (isMatureActiveFlow) {
-          return !!(formData.maturePeriodRegularity && formData.matureCycleLength && formData.matureHeavyBleeding)
-        }
-        return !!(formData.height && formData.weight)
-      case 4:
-        if (isYoungFlow) {
-          return !!(formData.weightGain && formData.facialHairAcne && formData.missedPeriodsLong && formData.pcodPcosDiagnosis)
-        }
-        if (isMatureActiveFlow) {
-          return !!(formData.matureDuration && formData.matureMissedPeriods && formData.maturePain)
-        }
-        return formData.numberOfChildren !== ''
-      case 5:
-        if (isMatureActiveFlow) {
-          return !!(formData.matureWeightGain && formData.matureHairAcne && formData.maturePcod && formData.matureFamilyHistory)
-        }
-        return true
-      default:
-        return false
+      }
+      if (step === 3) {
+        if (isYoungFlow) return !!(formData.bleedingDuration && formData.bleedingHeaviness && formData.crampsSeverity)
+        if (isMatureActiveFlow) return !!(formData.maturePeriodRegularity && formData.matureCycleLength && formData.matureHeavyBleeding)
+        if (isPostMenopausalFlow) return !!(formData.pmAge && formData.pmBleeding && formData.pmPreRegularity)
+      }
+      if (step === 4) {
+        if (isYoungFlow) return !!(formData.weightGain && formData.facialHairAcne && formData.missedPeriodsLong && formData.pcodPcosDiagnosis)
+        if (isMatureActiveFlow) return !!(formData.matureDuration && formData.matureMissedPeriods && formData.maturePain)
+        if (isPostMenopausalFlow) return !!(formData.pmPreHeavyBleeding && formData.pmPelvicPain && formData.pmHrtUsage)
+      }
+      if (step === 5) {
+        if (isMatureActiveFlow) return !!(formData.matureWeightGain && formData.matureHairAcne && formData.maturePcod && formData.matureFamilyHistory)
+        if (isPostMenopausalFlow) return !!(formData.pmChronicConditions && formData.pmWeightLossFatigue && formData.pmReproductiveDiagnoses && formData.pmFamilyHistory)
+      }
+      return true
     }
+
+    if (isCancer) {
+      if (step === 2) return true // Title step or just next
+      if (step === 3) return !!(formData.height && formData.weight)
+      if (step === 4) return formData.numberOfChildren !== ''
+      if (step === 5) return true
+    }
+
+    return false
   }
 
   const renderQuestion = (q: typeof MENSTRUAL_QUESTIONS_YOUNG[0]) => (
-    <div key={q.id} className="space-y-3">
-      <Label className="text-base font-semibold text-foreground">{q.label}</Label>
+    <div key={q.id} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Label className="text-lg font-bold text-foreground/80 leading-tight block">{q.label}</Label>
       <RadioGroup
         value={(formData as any)[q.id]}
         onValueChange={(value) => handleInputChange(q.id, value)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-3"
+        className="grid grid-cols-1 gap-3"
       >
-        {q.options.map((option) => (
-          <div key={option} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors">
-            <RadioGroupItem value={option} id={`${q.id}-${option}`} />
-            <Label htmlFor={`${q.id}-${option}`} className="font-normal cursor-pointer flex-1">
-              {option}
-            </Label>
-          </div>
-        ))}
+        {q.options.map((option) => {
+          const isSelected = (formData as any)[q.id] === option;
+          return (
+            <div
+              key={option}
+              className={cn(
+                "flex items-center space-x-3 rounded-2xl p-4 border-2 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md",
+                isSelected
+                  ? "border-primary bg-primary/5 shadow-primary/10"
+                  : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+              )}
+              onClick={() => handleInputChange(q.id, option)}
+            >
+              <RadioGroupItem value={option} id={`${q.id}-${option}`} className="w-5 h-5 border-2 border-primary/40 data-[state=checked]:border-primary" />
+              <Label htmlFor={`${q.id}-${option}`} className="font-semibold text-sm cursor-pointer flex-1 py-1">
+                {option}
+              </Label>
+            </div>
+          );
+        })}
       </RadioGroup>
     </div>
   )
 
   const renderCustomQuestion = (q: { id: string; label: string; options: string[] }) => (
-    <div key={q.id} className="space-y-3">
-      <Label className="text-base font-semibold text-foreground">{q.label}</Label>
+    <div key={q.id} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Label className="text-lg font-bold text-foreground/80 leading-tight block">{q.label}</Label>
       <RadioGroup
         value={(formData as any)[q.id]}
         onValueChange={(value) => handleInputChange(q.id, value)}
         className="grid grid-cols-1 md:grid-cols-2 gap-3"
       >
-        {q.options.map((option) => (
-          <div key={option} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors">
-            <RadioGroupItem value={option} id={`${q.id}-${option}`} />
-            <Label htmlFor={`${q.id}-${option}`} className="font-normal cursor-pointer flex-1">
-              {option}
-            </Label>
-          </div>
-        ))}
+        {q.options.map((option) => {
+          const isSelected = (formData as any)[q.id] === option;
+          return (
+            <div
+              key={option}
+              className={cn(
+                "flex items-center space-x-3 rounded-2xl p-4 border-2 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md",
+                isSelected
+                  ? "border-primary bg-primary/5 shadow-primary/10"
+                  : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+              )}
+              onClick={() => handleInputChange(q.id, option)}
+            >
+              <RadioGroupItem value={option} id={`${q.id}-${option}`} className="w-5 h-5 border-2 border-primary/40 data-[state=checked]:border-primary" />
+              <Label htmlFor={`${q.id}-${option}`} className="font-semibold text-sm cursor-pointer flex-1 py-1">
+                {option}
+              </Label>
+            </div>
+          );
+        })}
       </RadioGroup>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 py-12">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {assessmentType === 'menstrual'
-              ? 'Menstrual Cycle Analysis'
-              : assessmentType === 'cancer'
-                ? 'Cancer Risk Evaluation'
-                : 'Health Risk Assessment'
-            }
-          </h1>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-muted rounded-full h-2 flex gap-1 p-0.5">
+    <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10 selection:bg-primary/20">
+      <Header
+        onNavigate={onNavigate}
+        onStartAssessment={onStartAssessment}
+        showNav={true}
+      />
+      <div className="flex-1 flex flex-col items-center p-6 md:p-12">
+        <div className="w-full max-w-2xl space-y-10">
+          {/* Progress Header */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-primary/60">Step {step} of {totalSteps}</p>
+                <h1 className="text-4xl font-black tracking-tighter text-foreground">
+                  {assessmentType === 'menstrual'
+                    ? 'Cycle Health'
+                    : assessmentType === 'cancer'
+                      ? 'Cancer Check'
+                      : 'Full Health Review'
+                  }
+                </h1>
+              </div>
+              <div className="text-right">
+                <span className="text-4xl font-black text-primary/10 select-none tabular-nums">{Math.round((step / totalSteps) * 100)}%</span>
+              </div>
+            </div>
+
+            <div className="h-3 w-full bg-muted/40 rounded-full overflow-hidden flex gap-1 p-0.5 shadow-inner">
               {Array.from({ length: totalSteps }).map((_, i) => (
                 <div
                   key={i}
-                  className={`flex-1 rounded-full transition-all ${i < step ? 'bg-primary' : 'bg-muted-foreground/20'
-                    }`}
+                  className={cn(
+                    "h-full rounded-full transition-all duration-700 ease-in-out",
+                    i < step ? "bg-primary flex-[2] shadow-[0_0_15px_rgba(var(--primary),0.3)]" : "bg-muted-foreground/10 flex-1"
+                  )}
                 />
               ))}
             </div>
-            <span className="text-sm font-medium text-muted-foreground">
-              {step}/{totalSteps}
-            </span>
           </div>
-        </div>
 
-        <Card className="p-8">
-          {/* Step 1: Demographics */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-foreground mb-6">Basic Information</h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="age" className="text-base font-medium">
-                      Age (years)
+          <Card className="p-8 md:p-12 rounded-[3rem] border-none shadow-2xl shadow-primary/5 bg-white/90 dark:bg-black/60 backdrop-blur-2xl animate-in zoom-in-95 duration-500">
+            {/* Step 1: Demographics */}
+            {step === 1 && (
+              <div className="space-y-10">
+                <div className="space-y-8 text-center md:text-left">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Tell us about you</h2>
+                    <p className="text-muted-foreground font-medium italic">We use your age to tailor the assessment questions.</p>
+                  </div>
+
+                  <div className="space-y-4 max-w-md mx-auto md:mx-0">
+                    <Label htmlFor="age" className="text-lg font-bold text-foreground/70 block">
+                      How old are you today?
                     </Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      min="8"
-                      value={formData.age}
-                      onChange={(e) => handleInputChange('age', e.target.value)}
-                      placeholder="Enter your age"
-                      className="mt-2"
-                    />
+                    <div className="relative group">
+                      <Input
+                        id="age"
+                        type="number"
+                        min="8"
+                        value={formData.age}
+                        onChange={(e) => handleInputChange('age', e.target.value)}
+                        placeholder="e.g. 24"
+                        className="h-16 rounded-[1.5rem] border-2 border-muted/30 bg-white/50 dark:bg-black/20 focus:border-primary focus:ring-0 text-xl font-bold transition-all px-6 group-hover:border-primary/30"
+                      />
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-sm uppercase tracking-widest pointer-events-none opacity-40 group-focus-within:opacity-100 transition-opacity">Years</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 2: Menstrual History (Standard or Young Flow Part 1) */}
-          {step === 2 && (
-            <div className="space-y-8">
-              {isYoungFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Cycle Overview</h2>
-                  {MENSTRUAL_QUESTIONS_YOUNG.slice(0, 3).map(renderQuestion)}
-                </>
-              ) : isMatureFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Period Status</h2>
-                  {renderCustomQuestion({
-                    id: 'periodsStopped',
-                    label: 'Have your periods stopped?',
-                    options: ['Yes', 'No']
-                  })}
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-semibold text-foreground">Menstrual History</h2>
-                  {/* ... Original Step 2 ... */}
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="menarche" className="text-base font-medium">
-                        Age when menstruation started (years)
-                      </Label>
-                      <Input
-                        id="menarche"
-                        type="number"
-                        min="8"
-                        max="20"
-                        value={formData.menarcheAge}
-                        onChange={(e) => handleInputChange('menarcheAge', e.target.value)}
-                        placeholder="e.g., 12"
-                        className="mt-2"
-                      />
+            {/* Step 2: Menstrual History Overview */}
+            {step === 2 && (
+              <div className="space-y-10">
+                {isYoungFlow ? (
+                  <>
+                    <div className="space-y-2 mb-4">
+                      <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Cycle Overview</h2>
+                      <p className="text-muted-foreground font-medium italic">General health indicators for your current life stage.</p>
                     </div>
-
-                    <div>
-                      <Label htmlFor="menopause" className="text-base font-medium">
-                        Age when menopause started (if applicable)
-                      </Label>
-                      <Input
-                        id="menopause"
-                        type="number"
-                        min="30"
-                        max="70"
-                        value={formData.menopauseAge}
-                        onChange={(e) => handleInputChange('menopauseAge', e.target.value)}
-                        placeholder="Leave blank if not applicable"
-                        className="mt-2"
-                      />
+                    <div className="space-y-12">
+                      {MENSTRUAL_QUESTIONS_YOUNG.slice(0, 3).map(renderQuestion)}
                     </div>
-
-                    <div>
-                      <Label className="text-base font-medium mb-3 block">Menstrual Cycle Regularity</Label>
-                      <RadioGroup value={formData.cycleRegularity} onValueChange={(value) => handleInputChange('cycleRegularity', value)}>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="regular" id="regular" />
-                          <Label htmlFor="regular" className="font-normal cursor-pointer">
-                            Regular
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="irregular" id="irregular" />
-                          <Label htmlFor="irregular" className="font-normal cursor-pointer">
-                            Irregular
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Step 3: Physical Health or Mature Flow Part 2 */}
-          {step === 3 && (
-            <div className="space-y-8">
-              {isYoungFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Bleeding & Symptoms</h2>
-                  {MENSTRUAL_QUESTIONS_YOUNG.slice(3, 6).map(renderQuestion)}
-                </>
-              ) : isMatureActiveFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Period Regularity</h2>
-                  {MENSTRUAL_QUESTIONS_MATURE.slice(0, 3).map((q) => renderCustomQuestion(q))}
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-semibold text-foreground">Physical Health</h2>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="height" className="text-base font-medium">
-                          Height (cm)
+                  </>
+                ) : isMatureFlow ? (
+                  <>
+                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight mb-8">Period Status</h2>
+                    {renderCustomQuestion({
+                      id: 'periodsStopped',
+                      label: 'Have your periods completely stopped?',
+                      options: ['Yes', 'No']
+                    })}
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight mb-8">Menstrual History</h2>
+                    <div className="space-y-10">
+                      <div className="space-y-4">
+                        <Label htmlFor="menarche" className="text-lg font-bold text-foreground/70 block">
+                          At what age did your menstruation start?
                         </Label>
                         <Input
-                          id="height"
+                          id="menarche"
                           type="number"
-                          value={formData.height}
-                          onChange={(e) => handleInputChange('height', e.target.value)}
-                          placeholder="e.g., 170"
-                          className="mt-2"
+                          min="8"
+                          max="20"
+                          value={formData.menarcheAge}
+                          onChange={(e) => handleInputChange('menarcheAge', e.target.value)}
+                          placeholder="e.g. 12"
+                          className="h-16 rounded-[1.5rem] border-2 border-muted/30 bg-white/50 dark:bg-black/20 focus:border-primary focus:ring-0 text-xl font-bold transition-all px-6"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="weight" className="text-base font-medium">
-                          Weight (kg)
+
+                      <div className="space-y-4">
+                        <Label htmlFor="menopause" className="text-lg font-bold text-foreground/70 block">
+                          Age at menopause (if applicable)
                         </Label>
                         <Input
-                          id="weight"
+                          id="menopause"
                           type="number"
-                          value={formData.weight}
-                          onChange={(e) => handleInputChange('weight', e.target.value)}
-                          placeholder="e.g., 65"
-                          className="mt-2"
+                          min="30"
+                          max="70"
+                          value={formData.menopauseAge}
+                          onChange={(e) => handleInputChange('menopauseAge', e.target.value)}
+                          placeholder="Keep blank if not reached"
+                          className="h-16 rounded-[1.5rem] border-2 border-muted/30 bg-white/50 dark:bg-black/20 focus:border-primary focus:ring-0 text-xl font-bold transition-all px-6"
                         />
                       </div>
+
+                      <div className="space-y-6">
+                        <Label className="text-lg font-bold text-foreground/70 block px-1">Cycle Regularity Status</Label>
+                        <RadioGroup
+                          value={formData.cycleRegularity}
+                          onValueChange={(value) => handleInputChange('cycleRegularity', value)}
+                          className="grid grid-cols-2 gap-4"
+                        >
+                          {['regular', 'irregular'].map((reg) => (
+                            <div
+                              key={reg}
+                              className={cn(
+                                "flex items-center space-x-4 rounded-2xl p-5 border-2 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                                formData.cycleRegularity === reg
+                                  ? "border-primary bg-primary/5 shadow-primary/10"
+                                  : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+                              )}
+                              onClick={() => handleInputChange('cycleRegularity', reg)}
+                            >
+                              <RadioGroupItem value={reg} id={reg} className="w-5 h-5 border-2 border-primary/40" />
+                              <Label htmlFor={reg} className="font-black capitalize cursor-pointer text-sm tracking-tight">{reg}</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </div>
                     </div>
-                    {formData.height && formData.weight && (
-                      <div className="bg-primary/10 dark:bg-primary/20 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground flex items-center gap-3">
-                          <span>
-                            Your BMI: <span className="font-semibold text-foreground">{calculateBMI()?.toFixed(1)}</span>
-                          </span>
-                          {getBMIStatus() && (
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-sm ${getBMIStatus()!.className}`}>
-                              {getBMIStatus()!.label}
-                            </span>
-                          )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Modular Step Rendering */}
+            {(() => {
+              if (step <= 2 && isMenstrual) return null; // Already handled by Step 1 & 2 blocks or specifically below
+
+              // Menstrual Modules (Phase 2, 3, 4, 5)
+              if (isMenstrual) {
+                if (step === 3) {
+                  return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {isYoungFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Bleeding & Symptoms</h2>
+                          {MENSTRUAL_QUESTIONS_YOUNG.slice(3, 6).map(renderQuestion)}
+                        </>
+                      ) : isMatureActiveFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Period Regularity</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_MATURE.slice(0, 3).map((q) => renderCustomQuestion(q))}
+                          </div>
+                        </>
+                      ) : isPostMenopausalFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Post-Menopause Status</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_POST_MENOPAUSAL.slice(0, 3).map((q) => renderCustomQuestion(q))}
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  );
+                }
+                if (step === 4) {
+                  return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {isYoungFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Overall Symptoms & Diagnosis</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_YOUNG.slice(6).map(renderQuestion)}
+                          </div>
+                        </>
+                      ) : isMatureActiveFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Bleeding & Pain</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_MATURE.slice(3, 6).map((q) => renderCustomQuestion(q))}
+                          </div>
+                        </>
+                      ) : isPostMenopausalFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Symptoms & Medical History</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_POST_MENOPAUSAL.slice(3, 6).map((q) => renderCustomQuestion(q))}
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  );
+                }
+                if (step === 5) {
+                  return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {isMatureActiveFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Symptoms & Family History</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_MATURE.slice(6).map((q) => renderCustomQuestion(q))}
+                          </div>
+                        </>
+                      ) : isPostMenopausalFlow ? (
+                        <>
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Health & Family History</h2>
+                          <div className="space-y-10">
+                            {MENSTRUAL_QUESTIONS_POST_MENOPAUSAL.slice(6).map((q) => renderCustomQuestion(q))}
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  );
+                }
+              }
+
+              // Cancer Validation Module (Steps 2-5 when isCancer is true)
+              if (isCancer) {
+                if (step === 2) {
+                  return (
+                    <div className="space-y-8 text-center py-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                      <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/5">
+                        <Shield className="w-10 h-10 text-primary" />
+                      </div>
+                      <div className="space-y-4">
+                        <h2 className="text-4xl font-black text-foreground tracking-tighter">Oncology Validation</h2>
+                        <p className="text-muted-foreground text-lg max-w-sm mx-auto font-medium italic">
+                          "Now, let's explore your physical stats and family background to build a comprehensive risk profile."
                         </p>
                       </div>
-                    )}
-                    <div>
-                      <Label className="text-base font-medium mb-3 block">Do you have diabetes?</Label>
-                      <RadioGroup
-                        value={formData.diabetic ? 'yes' : 'no'}
-                        onValueChange={(value) => handleInputChange('diabetic', value === 'yes')}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="no" id="no-diabetes" />
-                          <Label htmlFor="no-diabetes" className="font-normal cursor-pointer">
-                            No
-                          </Label>
+                      <div className="pt-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 text-secondary-foreground text-[10px] font-black uppercase tracking-widest border border-secondary">
+                          Module 2: Clinical Factors
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="yes" id="yes-diabetes" />
-                          <Label htmlFor="yes-diabetes" className="font-normal cursor-pointer">
-                            Yes
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Step 4: Reproductive History or Mature Flow Part 3 */}
-          {step === 4 && (
-            <div className="space-y-8">
-              {isYoungFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Overall Symptoms & Diagnosis</h2>
-                  <div className="space-y-6">
-                    {MENSTRUAL_QUESTIONS_YOUNG.slice(6).map(renderQuestion)}
-                  </div>
-                </>
-              ) : isMatureActiveFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Bleeding & Pain</h2>
-                  <div className="space-y-6">
-                    {MENSTRUAL_QUESTIONS_MATURE.slice(3, 6).map((q) => renderCustomQuestion(q))}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-semibold text-foreground">Reproductive History</h2>
-                  {/* ... Original Step 4 ... */}
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="children" className="text-base font-medium">
-                        Number of children
-                      </Label>
-                      <Input
-                        id="children"
-                        type="number"
-                        min="0"
-                        value={formData.numberOfChildren}
-                        onChange={(e) => handleInputChange('numberOfChildren', e.target.value)}
-                        className="mt-2"
-                      />
-                    </div>
-
-                    {parseInt(formData.numberOfChildren) > 0 && (
-                      <div>
-                        <Label htmlFor="firstBirth" className="text-base font-medium">
-                          Age at first birth
-                        </Label>
-                        <Input
-                          id="firstBirth"
-                          type="number"
-                          value={formData.ageFirstBirth}
-                          onChange={(e) => handleInputChange('ageFirstBirth', e.target.value)}
-                          placeholder="e.g., 28"
-                          className="mt-2"
-                        />
                       </div>
-                    )}
-
-                    <div>
-                      <Label className="text-base font-medium mb-3 block">
-                        Have you used hormone replacement therapy or birth control for long periods?
-                      </Label>
-                      <RadioGroup
-                        value={formData.hormoneTherapy ? 'yes' : 'no'}
-                        onValueChange={(value) => handleInputChange('hormoneTherapy', value === 'yes')}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="no" id="no-hormone" />
-                          <Label htmlFor="no-hormone" className="font-normal cursor-pointer">
-                            No
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="yes" id="yes-hormone" />
-                          <Label htmlFor="yes-hormone" className="font-normal cursor-pointer">
-                            Yes
-                          </Label>
-                        </div>
-                      </RadioGroup>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                  )
+                }
+                if (step === 3) {
+                  const isDiabetic = formData.diabetic;
+                  return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Physical Vitality</h2>
+                        <p className="text-muted-foreground font-medium italic">Your body measurements help calculate metabolic risk factors.</p>
+                      </div>
 
-          {/* Step 5: Family History or Mature Flow Part 4 */}
-          {step === 5 && (
-            <div className="space-y-8">
-              {isMatureActiveFlow ? (
-                <>
-                  <h2 className="text-2xl font-bold text-foreground">Overall Symptoms & Family History</h2>
-                  <div className="space-y-6">
-                    {MENSTRUAL_QUESTIONS_MATURE.slice(6).map((q) => renderCustomQuestion(q))}
-                  </div>
-                </>
+                      <div className="space-y-8">
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="space-y-3">
+                            <Label htmlFor="height-c" className="text-lg font-bold text-foreground/70">Height (cm)</Label>
+                            <Input id="height-c" type="number" value={formData.height} onChange={(e) => handleInputChange('height', e.target.value)} placeholder="170" className="h-14 rounded-2xl border-2 border-muted/30 focus:border-primary px-6 font-bold" />
+                          </div>
+                          <div className="space-y-3">
+                            <Label htmlFor="weight-c" className="text-lg font-bold text-foreground/70">Weight (kg)</Label>
+                            <Input id="weight-c" type="number" value={formData.weight} onChange={(e) => handleInputChange('weight', e.target.value)} placeholder="65" className="h-14 rounded-2xl border-2 border-muted/30 focus:border-primary px-6 font-bold" />
+                          </div>
+                        </div>
+
+                        {formData.height && formData.weight && (
+                          <div className="bg-primary/5 border border-primary/10 p-6 rounded-[2rem] flex items-center justify-between shadow-inner">
+                            <span className="text-sm font-black uppercase tracking-widest text-primary/60">Body Mass Index</span>
+                            <span className="text-3xl font-black text-primary drop-shadow-sm">{calculateBMI()?.toFixed(1)}</span>
+                          </div>
+                        )}
+
+                        <div className="space-y-4">
+                          <Label className="text-lg font-bold text-foreground/70 block px-1">Have you been diagnosed with diabetes?</Label>
+                          <RadioGroup
+                            value={formData.diabetic ? 'yes' : 'no'}
+                            onValueChange={(value) => handleInputChange('diabetic', value === 'yes')}
+                            className="grid grid-cols-2 gap-4"
+                          >
+                            {['no', 'yes'].map((opt) => (
+                              <div
+                                key={opt}
+                                className={cn(
+                                  "flex items-center space-x-4 rounded-2xl p-5 border-2 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                                  (opt === 'yes' ? isDiabetic : !isDiabetic)
+                                    ? "border-primary bg-primary/5 shadow-primary/10"
+                                    : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+                                )}
+                                onClick={() => handleInputChange('diabetic', opt === 'yes')}
+                              >
+                                <RadioGroupItem value={opt} id={`db-${opt}`} className="w-5 h-5 border-2 border-primary/40" />
+                                <Label htmlFor={`db-${opt}`} className="font-black capitalize cursor-pointer text-sm tracking-tight">{opt}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                if (step === 4) {
+                  const hasHRT = formData.hormoneTherapy;
+                  return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Reproductive Journey</h2>
+                        <p className="text-muted-foreground font-medium italic">Hormonal history is a key factor in oncology risk assessment.</p>
+                      </div>
+
+                      <div className="space-y-8">
+                        <div className="space-y-4">
+                          <Label htmlFor="children-c" className="text-lg font-bold text-foreground/70 block">How many biological children do you have?</Label>
+                          <Input id="children-c" type="number" min="0" value={formData.numberOfChildren} onChange={(e) => handleInputChange('numberOfChildren', e.target.value)} className="h-16 rounded-[1.5rem] border-2 border-muted/30 focus:border-primary px-8 text-xl font-bold" />
+                        </div>
+
+                        {parseInt(formData.numberOfChildren) > 0 && (
+                          <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                            <Label htmlFor="firstBirth-c" className="text-lg font-bold text-foreground/70 block">Age at first biological birth</Label>
+                            <Input id="firstBirth-c" type="number" value={formData.ageFirstBirth} onChange={(e) => handleInputChange('ageFirstBirth', e.target.value)} placeholder="e.g. 28" className="h-16 rounded-[1.5rem] border-2 border-muted/30 focus:border-primary px-8 text-xl font-bold" />
+                          </div>
+                        )}
+
+                        <div className="space-y-4">
+                          <Label className="text-lg font-bold text-foreground/70 block px-1">Have you used Hormone Replacement Therapy (HRT)?</Label>
+                          <RadioGroup
+                            value={formData.hormoneTherapy ? 'yes' : 'no'}
+                            onValueChange={(value) => handleInputChange('hormoneTherapy', value === 'yes')}
+                            className="grid grid-cols-2 gap-4"
+                          >
+                            {['no', 'yes'].map((opt) => (
+                              <div
+                                key={opt}
+                                className={cn(
+                                  "flex items-center space-x-4 rounded-2xl p-5 border-2 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                                  (opt === 'yes' ? hasHRT : !hasHRT)
+                                    ? "border-primary bg-primary/5 shadow-primary/10"
+                                    : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+                                )}
+                                onClick={() => handleInputChange('hormoneTherapy', opt === 'yes')}
+                              >
+                                <RadioGroupItem value={opt} id={`hrt-${opt}`} className="w-5 h-5 border-2 border-primary/40" />
+                                <Label htmlFor={`hrt-${opt}`} className="font-black capitalize cursor-pointer text-sm tracking-tight">{opt}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                if (step === 5) {
+                  const fhBreast = formData.familyHistoryBreast;
+                  const fhOvarian = formData.familyHistoryOvarian;
+                  return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Family Legacy</h2>
+                        <p className="text-muted-foreground font-medium italic">Genetics can play a role in health patterns over generations.</p>
+                      </div>
+
+                      <div className="space-y-8">
+                        <div className="space-y-4">
+                          <Label className="text-lg font-bold text-foreground/70 block px-1">Is there a family history of breast cancer?</Label>
+                          <RadioGroup
+                            value={fhBreast ? 'yes' : 'no'}
+                            onValueChange={(value) => handleInputChange('familyHistoryBreast', value === 'yes')}
+                            className="grid grid-cols-2 gap-4"
+                          >
+                            {['no', 'yes'].map((opt) => (
+                              <div
+                                key={opt}
+                                className={cn(
+                                  "flex items-center space-x-4 rounded-2xl p-5 border-2 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                                  (opt === 'yes' ? fhBreast : !fhBreast)
+                                    ? "border-primary bg-primary/5 shadow-primary/10"
+                                    : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+                                )}
+                                onClick={() => handleInputChange('familyHistoryBreast', opt === 'yes')}
+                              >
+                                <RadioGroupItem value={opt} id={`fbr-${opt}`} className="w-5 h-5 border-2 border-primary/40" />
+                                <Label htmlFor={`fbr-${opt}`} className="font-black capitalize cursor-pointer text-sm tracking-tight">{opt}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-lg font-bold text-foreground/70 block px-1">Is there a family history of ovarian cancer?</Label>
+                          <RadioGroup
+                            value={fhOvarian ? 'yes' : 'no'}
+                            onValueChange={(value) => handleInputChange('familyHistoryOvarian', value === 'yes')}
+                            className="grid grid-cols-2 gap-4"
+                          >
+                            {['no', 'yes'].map((opt) => (
+                              <div
+                                key={opt}
+                                className={cn(
+                                  "flex items-center space-x-4 rounded-2xl p-5 border-2 transition-all cursor-pointer shadow-sm hover:shadow-md",
+                                  (opt === 'yes' ? fhOvarian : !fhOvarian)
+                                    ? "border-primary bg-primary/5 shadow-primary/10"
+                                    : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+                                )}
+                                onClick={() => handleInputChange('familyHistoryOvarian', opt === 'yes')}
+                              >
+                                <RadioGroupItem value={opt} id={`fov-${opt}`} className="w-5 h-5 border-2 border-primary/40" />
+                                <Label htmlFor={`fov-${opt}`} className="font-black capitalize cursor-pointer text-sm tracking-tight">{opt}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+              }
+
+              return null;
+            })()}
+
+            {/* Navigation */}
+            <div className="flex gap-4 mt-12 pt-8 border-t-2 border-primary/10">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                disabled={step === 1}
+                className="h-14 px-8 rounded-2xl gap-2 font-bold hover:bg-primary/5 text-muted-foreground transition-all disabled:opacity-30"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                Back
+              </Button>
+              <div className="flex-1" />
+              {step < totalSteps ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  className="h-14 px-10 rounded-2xl gap-2 bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                >
+                  Continue
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
               ) : (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-semibold text-foreground">Family Medical History</h2>
-                  <div className="space-y-6">
-                    <div>
-                      <Label className="text-base font-medium mb-3 block">
-                        Family history of breast cancer
-                      </Label>
-                      <RadioGroup
-                        value={formData.familyHistoryBreast ? 'yes' : 'no'}
-                        onValueChange={(value) =>
-                          handleInputChange('familyHistoryBreast', value === 'yes')
-                        }
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="no" id="no-breast-history" />
-                          <Label htmlFor="no-breast-history" className="font-normal cursor-pointer">
-                            No
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="yes" id="yes-breast-history" />
-                          <Label htmlFor="yes-breast-history" className="font-normal cursor-pointer">
-                            Yes
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-
-                    <div>
-                      <Label className="text-base font-medium mb-3 block">
-                        Family history of ovarian cancer
-                      </Label>
-                      <RadioGroup
-                        value={formData.familyHistoryOvarian ? 'yes' : 'no'}
-                        onValueChange={(value) =>
-                          handleInputChange('familyHistoryOvarian', value === 'yes')
-                        }
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="no" id="no-ovarian-history" />
-                          <Label htmlFor="no-ovarian-history" className="font-normal cursor-pointer">
-                            No
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="yes" id="yes-ovarian-history" />
-                          <Label htmlFor="yes-ovarian-history" className="font-normal cursor-pointer">
-                            Yes
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                </div>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canProceed()}
+                  className="h-14 px-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                >
+                  Analyze My Results
+                </Button>
               )}
             </div>
-          )}
-
-          {/* Navigation */}
-          <div className="flex gap-4 mt-8 pt-6 border-t border-border">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              disabled={step === 1}
-              className="gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </Button>
-            <div className="flex-1" />
-            {step < totalSteps ? (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={!canProceed()}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                View Results
-              </Button>
-            )}
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   )

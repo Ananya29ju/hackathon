@@ -4,6 +4,12 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import supabase from '../../lib/supabaseClient'
 import { useUser, signOut } from '../../lib/auth'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Header from '@/components/header'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -53,64 +59,118 @@ export default function LoginPage() {
 
   if (!loading && user) {
     return (
-      <div style={{maxWidth:640, margin:'40px auto', padding:20}}>
-        <h2>Signed in</h2>
-        <p>{user.email}</p>
-        <div style={{display:'flex', gap:8}}>
-          <button
-            onClick={async () => {
-              await signOut()
-              router.push('/login')
-            }}
-          >
-            Sign Out
-          </button>
-          <button
-            onClick={() => {
-              router.push('/')
-            }}
-          >
-            Go Home
-          </button>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header showNav={false} onNavigate={() => router.push('/')} />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">You are signed in</h2>
+            <p className="text-muted-foreground mb-6">{user.email}</p>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => router.push('/')}
+                className="w-full"
+              >
+                Go to Health Dashboard
+              </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  await signOut()
+                  router.push('/login')
+                }}
+                className="w-full"
+              >
+                Sign Out
+              </Button>
+            </div>
+          </Card>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{maxWidth:640, margin:'40px auto', padding:20}}>
-      <h1>Login / Sign Up</h1>
-      <form onSubmit={handleSignIn}>
-        <div style={{marginBottom:12}}>
-          <label style={{display:'block', marginBottom:6}}>Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as any)}>
-            <option value="user">Normal User</option>
-            <option value="asha">Asha Worker</option>
-          </select>
-        </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header showNav={false} onNavigate={() => router.push('/')} />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8">
+          <h1 className="text-3xl font-bold mb-6 text-center">Welcome to OVIRA</h1>
+          <p className="text-muted-foreground text-center mb-8">Login or create an account to track your health.</p>
 
-        <div style={{marginBottom:12}}>
-          <label style={{display:'block', marginBottom:6}}>Name (optional)</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
-        </div>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="role">Account Type</Label>
+              <Select value={role} onValueChange={(value: any) => setRole(value)}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Normal User</SelectItem>
+                  <SelectItem value="asha">Asha Worker</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div style={{marginBottom:12}}>
-          <label style={{display:'block', marginBottom:6}}>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Name (optional)</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Full name"
+              />
+            </div>
 
-        <div style={{marginBottom:12}}>
-          <label style={{display:'block', marginBottom:6}}>Password</label>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="email@example.com"
+                required
+              />
+            </div>
 
-        <div style={{display:'flex', gap:8}}>
-          <button type="submit" disabled={loadingLocal}>Sign In</button>
-          <button type="button" onClick={handleSignUp} disabled={loadingLocal}>Sign Up</button>
-        </div>
-      </form>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-      {message && <p style={{marginTop:12}}>{message}</p>}
+            <div className="pt-4 space-y-3">
+              <Button
+                className="w-full"
+                onClick={handleSignIn}
+                disabled={loadingLocal}
+              >
+                {loadingLocal ? 'Signing in...' : 'Sign In'}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleSignUp}
+                disabled={loadingLocal}
+              >
+                Sign Up
+              </Button>
+            </div>
+          </form>
+
+          {message && (
+            <div className={`mt-6 p-4 rounded-lg text-sm text-center ${message.includes('successful') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              {message}
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

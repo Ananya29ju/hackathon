@@ -18,10 +18,10 @@ export function calculateMenstrualRisk(
 
   // Irregular cycles increase risk
   if (cycleRegularity === 'irregular') {
-    score += 8
+    score += 25
   }
 
-  return Math.min(score, 25) // Cap at 25
+  return Math.min(score * 2, 100) // Scale and cap at 100
 }
 
 export function calculateYoungMenstrualRisk(data: any): number {
@@ -51,7 +51,7 @@ export function calculateYoungMenstrualRisk(data: any): number {
   score += (m.missed as any)[data.missedPeriodsLong] || 0
   score += (m.pcod as any)[data.pcodPcosDiagnosis] || 0
 
-  return Math.min(score, 50) // Cap at 50 for this detailed assessment
+  return Math.min(score * 2, 100) // Scale to 100
 }
 
 export function calculateMatureMenstrualRisk(data: any): number {
@@ -81,7 +81,37 @@ export function calculateMatureMenstrualRisk(data: any): number {
   score += (m.pcod as any)[data.maturePcod] || 0
   score += (m.family as any)[data.matureFamilyHistory] || 0
 
-  return Math.min(score, 60) // Slightly higher cap for mature assessment
+  return Math.min(score * 1.5, 100) // Scale to 100
+}
+
+export function calculatePostMenopausalRisk(data: any): number {
+  let score = 0
+
+  const m = {
+    age: { 'Below 45': 5, '45–50': 0, '51–55': 3, 'Above 55': 6 },
+    bleeding: { 'Never': 0, 'Once': 8, 'Occasionally': 15, 'More than once': 25 },
+    preRegularity: { 'No': 0, 'Slightly irregular': 3, 'Mostly irregular': 6, 'Frequently missed': 10 },
+    preHeavy: { 'No': 0, 'Sometimes': 4, 'Often': 8, 'Very heavy with clots': 12 },
+    pain: { 'Never': 0, 'Occasionally': 5, 'Often': 10, 'Persistent/severe': 15 },
+    hrt: { 'Never': 0, 'Less than 1 year': 3, '1–5 years': 7, 'More than 5 years': 12 },
+    conditions: { 'None': 0, 'One condition': 5, 'Two conditions': 10, 'More than two': 15 },
+    weightLoss: { 'No': 0, 'Mild': 4, 'Moderate': 8, 'Significant': 15 },
+    diagnoses: { 'No': 0, 'Suspected': 5, 'Yes (past)': 10, 'Yes (currently)': 15 },
+    family: { 'No': 0, 'Yes (distant relative)': 5, 'Yes (close family member)': 15, 'Not sure': 3 }
+  }
+
+  score += (m.age as any)[data.pmAge] || 0
+  score += (m.bleeding as any)[data.pmBleeding] || 0
+  score += (m.preRegularity as any)[data.pmPreRegularity] || 0
+  score += (m.preHeavy as any)[data.pmPreHeavyBleeding] || 0
+  score += (m.pain as any)[data.pmPelvicPain] || 0
+  score += (m.hrt as any)[data.pmHrtUsage] || 0
+  score += (m.conditions as any)[data.pmChronicConditions] || 0
+  score += (m.weightLoss as any)[data.pmWeightLossFatigue] || 0
+  score += (m.diagnoses as any)[data.pmReproductiveDiagnoses] || 0
+  score += (m.family as any)[data.pmFamilyHistory] || 0
+
+  return Math.min(score, 100) // Already scaled high
 }
 
 // Breast cancer risk scoring
@@ -104,7 +134,7 @@ export function calculateBreastCancerRisk(factors: {
   if (factors.bmiCategory === 'obese') score += 12
 
   const capped = Math.min(score, 100)
-  const percentage = ((capped / 100) * 30).toFixed(1) // Convert to percentage scale
+  const percentage = capped.toFixed(1)
 
   return { score: capped, percentage }
 }
@@ -128,7 +158,7 @@ export function calculateOvarianCancerRisk(factors: {
   if (factors.irregularMenses) score += 10
 
   const capped = Math.min(score, 100)
-  const percentage = ((capped / 100) * 25).toFixed(1) // Convert to percentage scale
+  const percentage = capped.toFixed(1)
 
   return { score: capped, percentage }
 }
@@ -151,7 +181,7 @@ export function calculateEndometrialCancerRisk(factors: {
   if (factors.irregularMenses) score += 12
 
   const capped = Math.min(score, 100)
-  const percentage = ((capped / 100) * 20).toFixed(1) // Convert to percentage scale
+  const percentage = capped.toFixed(1)
 
   return { score: capped, percentage }
 }
