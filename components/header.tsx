@@ -18,13 +18,15 @@ interface HeaderProps {
     userName?: string
     onNavigate?: (view: string) => void
     showNav?: boolean
+    isLoggedIn?: boolean
 }
 
 export default function Header({
     onStartAssessment,
-    userName = 'Ananya',
+    userName = 'User',
     onNavigate,
-    showNav = true
+    showNav = true,
+    isLoggedIn = false
 }: HeaderProps) {
     const sidebarItems = [
         { icon: User, label: 'Profile', id: 'profile' },
@@ -100,15 +102,50 @@ export default function Header({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Link href="/login">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="rounded-full border-primary/20 text-primary hover:bg-primary hover:text-white px-6 font-bold transition-all"
-                        >
-                            Login
-                        </Button>
-                    </Link>
+                    {isLoggedIn ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 transition-all p-0 overflow-hidden border border-primary/20">
+                                    <div className="flex items-center justify-center h-full w-full text-primary font-black text-lg">
+                                        {userName.charAt(0).toUpperCase()}
+                                    </div>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl shadow-xl border-primary/10">
+                                <DropdownMenuLabel className="px-3 py-2">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-bold leading-none">{userName}</p>
+                                        <p className="text-xs leading-none text-muted-foreground italic">Health Profile</p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-primary/5" />
+                                <DropdownMenuItem
+                                    onClick={() => onNavigate?.('profile')}
+                                    className="flex items-center gap-2 cursor-pointer py-2.5 px-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                                >
+                                    <User className="w-4 h-4 opacity-70" />
+                                    <span className="font-semibold text-sm">My Profile</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => onNavigate?.('logout')}
+                                    className="flex items-center gap-2 cursor-pointer py-2.5 px-3 rounded-xl text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                    <LogOut className="w-4 h-4 opacity-70" />
+                                    <span className="font-semibold text-sm">Logout</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Link href="/login">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full border-primary/20 text-primary hover:bg-primary hover:text-white px-6 font-bold transition-all"
+                            >
+                                Login
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </div>
         </header>

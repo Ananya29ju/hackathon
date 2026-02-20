@@ -14,6 +14,8 @@ interface ResultsPageProps {
   onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
   onContinueToCancer?: () => void
   showCancerPrompt?: boolean
+  isLoggedIn?: boolean
+  userName?: string
 }
 
 export default function ResultsPage({
@@ -22,7 +24,9 @@ export default function ResultsPage({
   onNavigate,
   onStartAssessment,
   onContinueToCancer,
-  showCancerPrompt
+  showCancerPrompt,
+  isLoggedIn = false,
+  userName = 'User'
 }: ResultsPageProps) {
   const isMenstrualOnly = results.assessmentType === 'menstrual'
   const primaryRisk = results.overallRisks.primaryRisk
@@ -39,6 +43,8 @@ export default function ResultsPage({
         onNavigate={onNavigate}
         onStartAssessment={onStartAssessment}
         showNav={true}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
       />
 
       <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">

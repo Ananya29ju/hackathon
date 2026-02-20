@@ -29,6 +29,7 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
         onStartAssessment={onStartAssessment}
         userName={userName}
         onNavigate={onNavigate}
+        isLoggedIn={isLoggedIn}
       />
 
       <main className="flex-1 max-w-5xl mx-auto px-6 py-12 w-full space-y-12">

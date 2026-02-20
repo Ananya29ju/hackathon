@@ -185,6 +185,8 @@ interface QuestionnaireFormProps {
   onNavigate: (view: string) => void
   onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
   initialData?: any
+  isLoggedIn?: boolean
+  userName?: string
 }
 
 export default function QuestionnaireForm({
@@ -192,7 +194,9 @@ export default function QuestionnaireForm({
   assessmentType,
   onNavigate,
   onStartAssessment,
-  initialData
+  initialData,
+  isLoggedIn = false,
+  userName = 'User'
 }: QuestionnaireFormProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState(initialData || {
@@ -490,6 +494,8 @@ export default function QuestionnaireForm({
         onNavigate={onNavigate}
         onStartAssessment={onStartAssessment}
         showNav={true}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
       />
       <div className="flex-1 flex flex-col items-center p-6 md:p-12">
         <div className="w-full max-w-2xl space-y-10">
