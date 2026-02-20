@@ -6,7 +6,7 @@ interface SpeedometerProps {
     value: number
     max?: number
     label?: string
-    riskCategory?: 'low' | 'moderate' | 'high'
+    riskCategory?: 'low' | 'moderate' | 'high' | 'critical'
     size?: 'sm' | 'md' | 'lg'
 }
 
@@ -60,11 +60,12 @@ export default function Speedometer({
     const rotation = percentage * 180 - 90
 
     const getColor = () => {
-        if (!isCalculated) return '#a78bfa' // soft lavender during scanning
-        if (riskCategory === 'low') return '#10b981' // emerald-500
-        if (riskCategory === 'moderate') return '#f59e0b' // amber-500
-        if (riskCategory === 'high') return '#f43f5e' // rose-500 (Soft Coral)
-        return '#f472b6' // pink-400 default
+        if (!isCalculated) return '#f472b6' // soft pink during scanning
+        if (riskCategory === 'low') return '#86efac' // Pista
+        if (riskCategory === 'moderate') return '#fdba74' // Peach
+        if (riskCategory === 'high') return '#f472b6' // Pink
+        if (riskCategory === 'critical') return '#e11d48' // Deep Pink
+        return '#f472b6' // default pink
     }
 
     const arcColor = getColor()

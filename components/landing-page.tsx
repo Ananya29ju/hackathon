@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { AlertCircle, Heart, Shield } from 'lucide-react'
+import { AlertCircle, Heart, Shield, Activity, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Header from './header'
 
@@ -33,8 +33,8 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
 
       <main className="flex-1 max-w-5xl mx-auto px-6 py-12 w-full space-y-12">
         {/* Hero Section */}
-        <section className="text-center space-y-6 pt-8 pb-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest">
+        <section className="text-center space-y-6 pt-8 pb-4 animate-in fade-in slide-in-from-top-8 duration-1000">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest shadow-sm">
             <Shield className="w-3 h-3" />
             Your Health, Protected & Understood
           </div>
@@ -48,94 +48,173 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             Hi {userName}, {greeting}! Let's check in on your health today with our evidence-based, supportive assessment tool.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-8 max-w-2xl mx-auto">
             <Button
               onClick={() => onStartAssessment('cancer')}
               size="lg"
-              className="h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-white font-bold"
+              className="h-16 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 flex flex-col items-center justify-center gap-1 group transition-all"
             >
-              Start SheShield Screening
-              <Shield className="ml-2 w-5 h-5" />
+              <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs uppercase tracking-widest">She Shield</span>
             </Button>
+
             <Button
-              variant="outline"
-              onClick={() => onNavigate('heatmap')}
+              onClick={() => onStartAssessment('menstrual')}
               size="lg"
-              className="h-14 px-8 rounded-full border-2"
+              className="h-16 px-6 rounded-2xl bg-secondary text-secondary-foreground hover:bg-secondary/90 font-black shadow-lg shadow-secondary/10 flex flex-col items-center justify-center gap-1 group transition-all"
             >
-              Explore Map
+              <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs uppercase tracking-widest">Menstrual Validation</span>
             </Button>
           </div>
         </section>
 
-        {/* Dynamic Cards Section */}
-        <section className="grid md:grid-cols-3 gap-8">
-          <Card className="group p-8 rounded-2xl border bg-muted/30">
-            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-              <Shield className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3 tracking-tight">Purely Private</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Your health data is encrypted and remains strictly between you and your records.
-            </p>
-          </Card>
-
-          <Card className="group p-8 rounded-2xl border bg-muted/30">
-            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-              <Heart className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3 tracking-tight">Evidence-Based</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Built on peer-reviewed medical research to provide accurate, reliable insights.
-            </p>
-          </Card>
-
-          <Card className="group p-8 rounded-2xl border bg-muted/30">
-            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-              <AlertCircle className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3 tracking-tight">Clearly Outlined</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              No complex jargon. We provide clear results to help you discuss health with your doctor.
-            </p>
-          </Card>
-        </section>
-
-        {/* Specialized Flows */}
-        <Card className="rounded-2xl p-8 bg-primary/5 border-none">
-          <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="flex-1 space-y-4">
-              <h3 className="text-3xl font-bold tracking-tight">Need a quicker check?</h3>
-              <p className="text-muted-foreground">
-                You can start specifically with your menstrual cycle or go straight to SheShield Screening.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => onStartAssessment('menstrual')}
-                  className="rounded-full"
-                >
-                  Menstrual Check
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => onStartAssessment('cancer')}
-                  className="rounded-full"
-                >
-                  SheShield Screening
-                </Button>
+        {/* Revitalized dynamic Cards Section */}
+        <section className="grid md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+          <Card className="group relative overflow-hidden p-10 rounded-[2.5rem] border-none shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-gradient-to-br from-white/80 to-primary/10 dark:from-black/40 dark:to-primary/5 backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150 group-hover:bg-primary/10" />
+            <div className="relative space-y-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-[1.25rem] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-inner">
+                <Shield className="w-8 h-8 text-primary" />
               </div>
-            </div>
-            <div className="w-full md:w-1/3 p-4 bg-background rounded-2xl border border-border">
-              <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Important: Our tools are educational. Always consult a healthcare professional for clinical diagnosis.
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black tracking-tight text-foreground transition-colors group-hover:text-primary">Purely Private</h3>
+                <p className="text-muted-foreground font-medium leading-relaxed">
+                  Your health data is encrypted and remains strictly between you and your records.
                 </p>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          <Card className="group relative overflow-hidden p-10 rounded-[2.5rem] border-none shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-gradient-to-br from-white/80 to-secondary/10 dark:from-black/40 dark:to-secondary/5 backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150 group-hover:bg-secondary/20" />
+            <div className="relative space-y-6">
+              <div className="w-16 h-16 bg-secondary/20 rounded-[1.25rem] flex items-center justify-center group-hover:-rotate-12 group-hover:scale-110 transition-all duration-500 shadow-inner">
+                <Heart className="w-8 h-8 text-secondary-foreground" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black tracking-tight text-foreground transition-colors group-hover:text-secondary-foreground">Evidence-Based</h3>
+                <p className="text-muted-foreground font-medium leading-relaxed">
+                  Built on peer-reviewed medical research to provide accurate, reliable insights.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="group relative overflow-hidden p-10 rounded-[2.5rem] border-none shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-gradient-to-br from-white/80 to-accent/10 dark:from-black/40 dark:to-accent/5 backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150 group-hover:bg-accent/20" />
+            <div className="relative space-y-6">
+              <div className="w-16 h-16 bg-accent/20 rounded-[1.25rem] flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-inner">
+                <AlertCircle className="w-8 h-8 text-accent-foreground" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black tracking-tight text-foreground transition-colors group-hover:text-accent-foreground">Clearly Outlined</h3>
+                <p className="text-muted-foreground font-medium leading-relaxed">
+                  No complex jargon. We provide clear results to help you discuss health with your doctor.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* SheShield Initiative Section - Medium Sized */}
+        <section className="py-4 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 w-full px-4">
+          <Card className="rounded-[2.5rem] overflow-hidden border-none shadow-xl glass-card bg-white/60 dark:bg-black/60 backdrop-blur-2xl">
+            <div className="flex flex-col lg:flex-row">
+              {/* Content Side (Left) */}
+              <div className="lg:w-3/5 p-8 md:p-12 flex flex-col justify-center space-y-6">
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
+                    Community Initiative
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tighter text-foreground leading-tight">
+                    SheShield Screening 💗🛡️
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      A gentle women’s health screening that helps identify early risk signs related to breast, ovarian, and reproductive health.
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Designed to support ASHA workers in spreading awareness and guiding women across both rural and urban communities.
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Focused on early awareness, prevention, and helping women seek timely and safe medical care.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Side (Right) - Full Bleed */}
+              <div className="lg:w-2/5 relative bg-primary/5 min-h-[300px]">
+                <img
+                  src="/images/asha.png"
+                  alt="SheShield Official Banner"
+                  className="w-full h-full object-cover transition-all duration-700 hover:scale-105"
+                />
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Menstrual Wellness Section - Medium Sized */}
+        <section className="py-4 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 w-full px-4">
+          <Card className="rounded-[2.5rem] overflow-hidden border-none shadow-xl glass-card bg-white/60 dark:bg-black/60 backdrop-blur-2xl transition-all duration-500 hover:shadow-secondary/5">
+            <div className="flex flex-col lg:flex-row">
+              {/* Content Side (Left) */}
+              <div className="lg:w-3/5 p-8 md:p-12 flex flex-col justify-center space-y-6">
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 text-secondary-foreground text-[10px] font-black uppercase tracking-widest">
+                    Cycle Wellness
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tighter text-foreground leading-tight">
+                    Menstrual Validation 🩸✨
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-secondary shrink-0 shadow-[0_0_8px_rgba(var(--secondary),0.4)]" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Menstrual health reflects the overall well‑being of a woman’s reproductive system. Regular cycles, manageable flow, and minimal discomfort usually indicate healthy hormonal balance.
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-secondary shrink-0 shadow-[0_0_8px_rgba(var(--secondary),0.4)]" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Tracking your cycle helps identify changes early and supports timely care.
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-secondary shrink-0 shadow-[0_0_8px_rgba(var(--secondary),0.4)]" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Maintaining good nutrition, hygiene, and stress balance plays an important role in healthy menstruation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Side (Right) */}
+              <div className="lg:w-2/5 relative bg-secondary/5 min-h-[300px]">
+                <img
+                  src="/images/mens.png"
+                  alt="Menstrual Wellness"
+                  className="w-full h-full object-cover transition-all duration-700 hover:scale-105"
+                />
+              </div>
+            </div>
+          </Card>
+        </section>
+
       </main>
 
       {/* Footer */}

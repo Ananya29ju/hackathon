@@ -350,7 +350,11 @@ export default function QuestionnaireForm({
                     ? 'Cycle Health'
                     : assessmentType === 'cancer'
                       ? 'SheShield Screening'
-                      : 'Full Health Review'
+                      : step === 1
+                        ? 'Full Health Review'
+                        : step <= (1 + menstrualSteps)
+                          ? 'Part 1: Menstrual Health'
+                          : 'Part 2: SheShield Screening'
                   }
                 </h1>
               </div>

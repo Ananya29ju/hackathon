@@ -74,7 +74,7 @@ export default function ProfileView({ onNavigate, onStartAssessment }: ProfileVi
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10">
+        <div className="min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/30 via-background to-primary/5 selection:bg-primary/20">
             <Header
                 onNavigate={onNavigate}
                 onStartAssessment={onStartAssessment}
@@ -86,55 +86,57 @@ export default function ProfileView({ onNavigate, onStartAssessment }: ProfileVi
                 <Button
                     variant="ghost"
                     onClick={() => onNavigate('landing')}
-                    className="group gap-2 text-muted-foreground hover:text-primary transition-colors font-bold"
+                    className="group gap-2 text-muted-foreground hover:text-primary transition-all font-black text-xs uppercase tracking-widest hover:bg-primary/5 rounded-full px-6"
                 >
-                    <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Back to Dashboard
                 </Button>
 
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="space-y-2">
-                        <h1 className="text-5xl font-black tracking-tighter text-foreground">My Profile</h1>
-                        <p className="text-muted-foreground font-medium italic">Manage your personal information and account settings.</p>
+                <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                    <div className="space-y-3">
+                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-foreground">My Profile</h1>
+                        <p className="text-muted-foreground font-medium italic text-lg leading-relaxed">Manage your personal information and account settings.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <Card className="md:col-span-2 shadow-2xl border-none bg-white/80 dark:bg-black/40 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
-                            <CardHeader className="bg-primary/5 border-b border-primary/10 pb-8">
-                                <CardTitle className="text-2xl font-black flex items-center gap-2">
-                                    <User className="w-6 h-6 text-primary" />
+                    <div className="grid md:grid-cols-3 gap-10">
+                        <Card className="md:col-span-2 shadow-2xl border-none bg-white/60 dark:bg-black/40 backdrop-blur-3xl rounded-[3rem] overflow-hidden animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
+                            <CardHeader className="bg-primary/5 border-b border-primary/10 pb-10 pt-10 px-10">
+                                <CardTitle className="text-3xl font-black flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
+                                        <User className="w-6 h-6 text-primary" />
+                                    </div>
                                     Personal Details
                                 </CardTitle>
-                                <CardDescription className="font-medium text-foreground/60">
-                                    Update your username. Your email address is fixed.
+                                <CardDescription className="font-bold text-foreground/40 mt-2 text-sm uppercase tracking-widest">
+                                    Secure Health Profile Management
                                 </CardDescription>
                             </CardHeader>
                             <form onSubmit={handleUpdateProfile}>
-                                <CardContent className="space-y-6 pt-8">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name" className="font-bold text-foreground/70 px-1 flex items-center gap-2">
-                                            <User className="w-4 h-4" /> Username
+                                <CardContent className="space-y-8 pt-10 px-10">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="name" className="font-black text-[10px] uppercase tracking-[0.2em] text-primary/60 px-1 flex items-center gap-2">
+                                            <User className="w-3.5 h-3.5" /> Full Name
                                         </Label>
                                         <Input
                                             id="name"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            className="h-14 rounded-2xl bg-white/50 border-muted focus:border-primary text-lg font-medium px-6"
-                                            placeholder="Enter your username"
+                                            className="h-16 rounded-2xl bg-white/40 dark:bg-black/20 border-primary/10 focus:border-primary text-xl font-bold px-8 shadow-inner transition-all focus:scale-[1.01]"
+                                            placeholder="Enter your name"
                                             required
                                         />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="font-bold text-foreground/70 px-1 flex items-center gap-2">
-                                            <Mail className="w-4 h-4" /> Email Address
+                                    <div className="space-y-3">
+                                        <Label htmlFor="email" className="font-black text-[10px] uppercase tracking-[0.2em] text-primary/60 px-1 flex items-center gap-2">
+                                            <Mail className="w-3.5 h-3.5" /> Email Address
                                         </Label>
                                         <Input
                                             id="email"
                                             type="email"
                                             value={email}
                                             disabled
-                                            className="h-14 rounded-2xl bg-muted/30 border-muted text-lg font-medium px-6 cursor-not-allowed opacity-70"
+                                            className="h-16 rounded-2xl bg-muted/50 border-muted text-xl font-bold px-8 cursor-not-allowed opacity-60 italic"
                                             placeholder="Enter your email"
                                         />
                                     </div>

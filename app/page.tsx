@@ -27,8 +27,7 @@ export default function Home() {
 
   const handleStartAssessment = (type: 'menstrual' | 'cancer' | 'both') => {
     setOriginalAssessmentType(type)
-    // Always start with menstrual if 'both' is selected
-    setAssessmentType(type === 'both' ? 'menstrual' : type)
+    setAssessmentType(type)
     setCurrentPage('questionnaire')
   }
 
@@ -134,7 +133,7 @@ export default function Home() {
       )}
 
       {(currentPage === 'heatmap' || currentPage === 'videos') && (
-        <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10">
+        <div className="min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/30 via-background to-primary/5">
           <Header
             onNavigate={handleNavigate}
             onStartAssessment={handleStartAssessment}
@@ -146,18 +145,18 @@ export default function Home() {
               <Button
                 variant="ghost"
                 onClick={() => setCurrentPage('landing')}
-                className="group gap-2 text-muted-foreground hover:text-primary transition-colors font-bold"
+                className="group gap-2 text-muted-foreground hover:text-primary transition-all font-black text-xs uppercase tracking-widest hover:bg-primary/5 rounded-full px-6"
               >
-                <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 Back to Dashboard
               </Button>
 
-              <div className="space-y-12">
+              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 <div className="space-y-4">
                   <p className="text-xs font-black uppercase tracking-[0.3em] text-primary/60">
                     {currentPage === 'heatmap' ? 'Live Monitoring' : 'Coming Soon'}
                   </p>
-                  <h1 className="text-5xl font-black tracking-tighter text-foreground capitalize">
+                  <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-foreground capitalize">
                     {currentPage.replace('-', ' ')}
                   </h1>
                 </div>
@@ -165,14 +164,14 @@ export default function Home() {
                 {currentPage === 'heatmap' ? (
                   <HeatMap />
                 ) : (
-                  <Card className="p-16 md:p-24 text-center rounded-[3rem] border-none shadow-2xl shadow-primary/5 bg-white/50 dark:bg-black/40 backdrop-blur-xl border-dashed border-2 border-primary/20">
-                    <div className="max-w-md mx-auto space-y-6">
-                      <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto shadow-lg shadow-primary/5">
-                        <Shield className="w-10 h-10 text-primary animate-pulse" />
+                  <Card className="p-16 md:p-24 text-center rounded-[4rem] border-none shadow-2xl bg-white/60 dark:bg-black/40 backdrop-blur-3xl animate-in zoom-in-95 duration-1000">
+                    <div className="max-w-md mx-auto space-y-8">
+                      <div className="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-lg shadow-primary/5">
+                        <Shield className="w-12 h-12 text-primary animate-pulse" />
                       </div>
-                      <div className="space-y-2">
-                        <h3 className="text-2xl font-black text-foreground">Premium Experience Under Construction</h3>
-                        <p className="text-muted-foreground font-medium">We're crafting a beautiful and personalized space for your {currentPage}. Stay tuned for something special.</p>
+                      <div className="space-y-3">
+                        <h3 className="text-3xl font-black text-foreground tracking-tight">Premium Experience Under Construction</h3>
+                        <p className="text-muted-foreground font-medium text-lg italic italic">We're crafting a beautiful and personalized space for your {currentPage}. Stay tuned for something special.</p>
                       </div>
                     </div>
                   </Card>
@@ -201,7 +200,7 @@ export default function Home() {
           onNavigate={handleNavigate}
           onStartAssessment={handleStartAssessment}
           onContinueToCancer={handleContinueToCancer}
-          showCancerPrompt={originalAssessmentType === 'both' && assessmentType === 'menstrual'}
+          showCancerPrompt={assessmentType === 'menstrual'}
           isLoggedIn={!!user}
           userName={user?.user_metadata?.name || user?.email || 'User'}
         />
