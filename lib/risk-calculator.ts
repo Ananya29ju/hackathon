@@ -4,7 +4,7 @@ export function calculateMenstrualRisk(
   menopauseAge: number | null,
   cycleRegularity: 'regular' | 'irregular'
 ): number {
-  let score = 0
+  let score = 0 
 
   // Earlier menarche increases risk (2 points per year below 12)
   if (menarcheAge < 12) {
