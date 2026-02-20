@@ -50,8 +50,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Analytics />
+          <div className="relative isolate min-h-screen overflow-hidden">
+            {/* Background Decorative Blobs */}
+            <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-float" />
+              <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-secondary/20 rounded-full blur-[100px] animate-float [animation-delay:-5s]" />
+              <div className="absolute top-[20%] right-[15%] w-[25%] h-[25%] bg-accent/15 rounded-full blur-[80px] animate-float [animation-delay:-12s]" />
+            </div>
+
+            {children}
+            <Analytics />
+          </div>
         </ThemeProvider>
       </body>
     </html>

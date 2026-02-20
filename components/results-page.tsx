@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { AlertCircle, Heart, RotateCcw, Calendar, Activity, Shield } from 'lucide-react'
+import { AlertCircle, Heart, RotateCcw, Calendar, Activity, Shield, Copy, CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
 import { getRiskCategory, getRiskColor, getRiskTextColor } from '@/lib/risk-calculator'
 import Speedometer from './ui/speedometer'
 import Header from './header'
@@ -32,6 +33,31 @@ export default function ResultsPage({
   const menstrualScore = results.menstrualRisk
   const menstrualCategory = menstrualScore < 20 ? 'low' : menstrualScore < 50 ? 'moderate' : 'high'
   const primaryCategory = isMenstrualOnly ? menstrualCategory : getRiskCategory(primaryRiskData.score)
+
+  const [copied, setCopied] = useState(false)
+
+  const handleCopySummary = () => {
+    const summary = `
+HEALTH ASSESSMENT SUMMARY (Educational Only)
+Date: ${new Date().toLocaleDateString()}
+Profile: ${results.age} yrs, BMI: ${results.bmi}
+
+PRIMARY ANALYSIS: ${isMenstrualOnly ? 'Hormonal Stability' : primaryRiskData.name}
+Risk Category: ${primaryCategory.toUpperCase()}
+Risk Score: ${isMenstrualOnly ? menstrualScore : primaryRiskData.score}/100
+
+KEY MARKERS:
+- Menarche Age: ${results.menarcheAgeGroup || results.menarcheAge || 'N/A'}
+- Cycle Status: ${results.cycleLength || results.maturePeriodRegularity || results.cycleRegularity || 'N/A'}
+- Family History: ${results.familyHistoryBreast ? 'Breast Cancer (Yes)' : 'Breast Cancer (No)'}, ${results.familyHistoryOvarian ? 'Ovarian Cancer (Yes)' : 'Ovarian Cancer (No)'}
+
+NOTES: These results were generated using a digital self-assessment tool and are intended for clinical discussion.
+    `.trim()
+
+    navigator.clipboard.writeText(summary)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-lavender-50 via-background to-pink-50 dark:from-lavender-950/10 dark:to-pink-950/10">
@@ -162,8 +188,19 @@ export default function ResultsPage({
         )}
 
         {/* Assessment Details */}
-        <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Assessment Summary</h2>
+        <Card className="p-8 mb-8 relative">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-foreground">Assessment Summary</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopySummary}
+              className="gap-2 rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all"
+            >
+              {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copied' : 'Copy for Doctor'}
+            </Button>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Left Column */}

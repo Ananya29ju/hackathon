@@ -4,15 +4,34 @@ import { AlertCircle, Heart, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Header from './header'
+import { useState, useEffect } from 'react'
 
 interface LandingPageProps {
   onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
   userName?: string
   isLoggedIn?: boolean
   onNavigate: (view: string) => void
+  results?: any
 }
 
-export default function LandingPage({ onStartAssessment, userName = 'Ananya', isLoggedIn = false, onNavigate }: LandingPageProps) {
+const WELLNESS_TIPS = [
+  "Stay hydrated! Drinking 2.7L of water daily helps reduce bloating and headaches during your cycle.",
+  "Gentle movement like yoga or walking can release endorphins that act as natural pain relief.",
+  "Heat therapy (like a hot water bottle) is scientifically proven to soothe uterine contractions.",
+  "Magnesium-rich foods like dark chocolate and bananas help relax muscles and ease cramps.",
+  "Tracking your cycle helps predict hormonal shifts and manage your energy levels better.",
+  "Prioritize 7-9 hours of sleep; rest is a productive part of your health journey.",
+  "Iron-rich foods like lentils and spinach help replace nutrients lost through bleeding."
+]
+
+export default function LandingPage({ onStartAssessment, userName = 'Ananya', isLoggedIn = false, onNavigate, results }: LandingPageProps) {
+  const [tip, setTip] = useState('')
+
+  useEffect(() => {
+    const randomTip = WELLNESS_TIPS[Math.floor(Math.random() * WELLNESS_TIPS.length)]
+    setTip(randomTip)
+  }, [])
+
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 12) return 'Good morning'
@@ -35,8 +54,11 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
         {/* Hero Section */}
         <section className="text-center space-y-6 pt-8 pb-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest animate-in fade-in slide-in-from-bottom-2">
-            <Shield className="w-3 h-3" />
-            Your Health, Protected & Understood
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            Secure & Private Profile
           </div>
 
           <h2 className="text-5xl md:text-6xl font-black tracking-tighter text-foreground leading-[1.1]">
@@ -59,12 +81,33 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             </Button>
             <Button
               variant="outline"
-              onClick={() => onNavigate('heatmap')}
+              onClick={() => onNavigate('preventive-care')}
               size="lg"
               className="h-14 px-10 rounded-full border-2 border-primary/20 text-primary font-bold hover:bg-primary/5 transition-all"
             >
+              Wellness Hub
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => onNavigate('heatmap')}
+              size="lg"
+              className="h-14 px-10 rounded-full text-muted-foreground font-bold hover:text-primary transition-all"
+            >
               Explore Heat Map
             </Button>
+          </div>
+
+          {/* Daily Wellness Tip */}
+          <div className="max-w-2xl mx-auto animate-in fade-in delay-300">
+            <Card className="p-4 bg-primary/5 border-none rounded-2xl flex items-center gap-4">
+              <div className="w-10 h-10 bg-white dark:bg-black/20 rounded-xl flex items-center justify-center shadow-sm">
+                <Heart className="w-5 h-5 text-primary" />
+              </div>
+              <p className="text-sm text-foreground/80 font-medium text-left leading-relaxed">
+                <span className="font-black text-primary uppercase text-[10px] block tracking-widest mb-0.5">Daily Wellness Tip</span>
+                {tip || "Loading your health insight..."}
+              </p>
+            </Card>
           </div>
         </section>
 

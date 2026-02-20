@@ -8,12 +8,19 @@ import QuestionnaireForm from '@/components/questionnaire-form'
 import ResultsPage from '@/components/results-page'
 import LandingPage from '@/components/landing-page'
 import Header from '@/components/header'
+import PreventiveCare from '@/components/preventive-care'
+import HygieneDetails from '@/components/hygiene-details'
+import DietaryDetails from '@/components/dietary-details'
+import LifestyleDetails from '@/components/lifestyle-details'
+import BreastCancerDetails from '@/components/breast-cancer-details'
+import OvarianCancerDetails from '@/components/ovarian-cancer-details'
+import EndometrialCancerDetails from '@/components/endometrial-cancer-details'
 import { useUser, signOut } from '@/lib/auth'
 import supabase from '@/lib/supabaseClient'
 
 export default function Home() {
   const { user, loading } = useUser()
-  const [currentPage, setCurrentPage] = useState<'landing' | 'questionnaire' | 'results' | 'profile' | 'heatmap' | 'videos'>('landing')
+  const [currentPage, setCurrentPage] = useState<'landing' | 'questionnaire' | 'results' | 'profile' | 'heatmap' | 'videos' | 'preventive-care' | 'hygiene-details' | 'dietary-details' | 'lifestyle-details' | 'breast-cancer-details' | 'ovarian-cancer-details' | 'endometrial-cancer-details'>('landing')
   const [assessmentType, setAssessmentType] = useState<'menstrual' | 'cancer' | 'both'>('menstrual')
   const [originalAssessmentType, setOriginalAssessmentType] = useState<'menstrual' | 'cancer' | 'both'>('menstrual')
   const [lastFormData, setLastFormData] = useState<any>(null)
@@ -158,6 +165,56 @@ export default function Home() {
           onStartAssessment={handleStartAssessment}
           onContinueToCancer={handleContinueToCancer}
           showCancerPrompt={originalAssessmentType === 'both' && assessmentType === 'menstrual'}
+        />
+      )}
+      {currentPage === 'preventive-care' && (
+        <PreventiveCare
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+          results={results}
+        />
+      )}
+      {currentPage === 'hygiene-details' && (
+        <HygieneDetails
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+      {currentPage === 'dietary-details' && (
+        <DietaryDetails
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+      {currentPage === 'lifestyle-details' && (
+        <LifestyleDetails
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+      {currentPage === 'breast-cancer-details' && (
+        <BreastCancerDetails
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+      {currentPage === 'ovarian-cancer-details' && (
+        <OvarianCancerDetails
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+      {currentPage === 'endometrial-cancer-details' && (
+        <EndometrialCancerDetails
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
         />
       )}
     </main>
