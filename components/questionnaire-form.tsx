@@ -66,10 +66,28 @@ export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) 
 
   const getBMICategory = () => {
     const bmi = calculateBMI()
-    if (!bmi) return 'normal'
+    if (bmi == null || isNaN(bmi)) return null
+    if (bmi < 18.5) return 'underweight'
     if (bmi < 25) return 'normal'
     if (bmi < 30) return 'overweight'
     return 'obese'
+  }
+
+  const getBMIStatus = () => {
+    const category = getBMICategory()
+    if (!category) return null
+    switch (category) {
+      case 'underweight':
+        return { label: 'Underweight ', className: 'text-red-700 bg-red-100' }
+      case 'normal':
+        return { label: 'Normal', className: 'text-green-700 bg-green-100' }
+      case 'overweight':
+        return { label: 'Overweight', className: 'text-orange-700 bg-orange-100' }
+      case 'obese':
+        return { label: 'Obese', className: 'text-red-800 bg-red-200' }
+      default:
+        return null
+    }
   }
 
   const handleSubmit = () => {
@@ -278,8 +296,15 @@ export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) 
                 </div>
                 {formData.height && formData.weight && (
                   <div className="bg-primary/10 dark:bg-primary/20 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      Your BMI: <span className="font-semibold text-foreground">{calculateBMI()?.toFixed(1)}</span>
+                    <p className="text-sm text-muted-foreground flex items-center gap-3">
+                      <span>
+                        Your BMI: <span className="font-semibold text-foreground">{calculateBMI()?.toFixed(1)}</span>
+                      </span>
+                      {getBMIStatus() && (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-sm ${getBMIStatus()!.className}`}>
+                          {getBMIStatus()!.label}
+                        </span>
+                      )}
                     </p>
                   </div>
                 )}
