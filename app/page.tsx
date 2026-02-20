@@ -75,6 +75,7 @@ export default function Home() {
           breast_risk_score: data.breastRisk?.score,
           ovarian_risk_score: data.ovarianRisk?.score,
           endometrial_risk_score: data.endometrialRisk?.score,
+          menstrual_score: data.menstrualRisk,
           primary_risk: data.overallRisks?.primaryRisk,
           latitude,
           longitude
@@ -115,7 +116,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background text-foreground">
       {currentPage === 'landing' && (
         <LandingPage
           onStartAssessment={handleStartAssessment}

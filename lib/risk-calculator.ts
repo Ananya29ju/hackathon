@@ -266,13 +266,14 @@ export function calculateOverallRisks(
   return { risks, primaryRisk }
 }
 
-export function getRiskCategory(score: number): 'low' | 'moderate' | 'high' {
+export function getRiskCategory(score: number): 'low' | 'moderate' | 'high' | 'critical' {
   if (score < 20) return 'low'
-  if (score < 50) return 'moderate'
-  return 'high'
+  if (score < 45) return 'moderate'
+  if (score < 75) return 'high'
+  return 'critical'
 }
 
-export function getRiskColor(category: 'low' | 'moderate' | 'high'): string {
+export function getRiskColor(category: 'low' | 'moderate' | 'high' | 'critical'): string {
   switch (category) {
     case 'low':
       return 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900'
@@ -280,10 +281,12 @@ export function getRiskColor(category: 'low' | 'moderate' | 'high'): string {
       return 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
     case 'high':
       return 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
+    case 'critical':
+      return 'bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900'
   }
 }
 
-export function getRiskTextColor(category: 'low' | 'moderate' | 'high'): string {
+export function getRiskTextColor(category: 'low' | 'moderate' | 'high' | 'critical'): string {
   switch (category) {
     case 'low':
       return 'text-green-900 dark:text-green-200'
@@ -291,5 +294,7 @@ export function getRiskTextColor(category: 'low' | 'moderate' | 'high'): string 
       return 'text-amber-900 dark:text-amber-200'
     case 'high':
       return 'text-red-900 dark:text-red-200'
+    case 'critical':
+      return 'text-purple-900 dark:text-purple-200'
   }
 }
