@@ -15,10 +15,11 @@ import {
 interface LandingPageProps {
   onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
   userName?: string
+  isLoggedIn?: boolean
   onNavigate: (view: string) => void
 }
 
-export default function LandingPage({ onStartAssessment, userName = 'Ananya', onNavigate }: LandingPageProps) {
+export default function LandingPage({ onStartAssessment, userName = 'Ananya', isLoggedIn = false, onNavigate }: LandingPageProps) {
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 12) return 'Good morning'
@@ -98,11 +99,23 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', on
             </div>
 
             <div>
-              <Link href="/login">
-                <Button size="sm" className="bg-transparent border border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
-                  Login
+              {isLoggedIn ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onNavigate('logout')}
+                  className="text-primary-foreground hover:bg-primary-foreground/10 gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
                 </Button>
-              </Link>
+              ) : (
+                <Link href="/login">
+                  <Button size="sm" className="bg-transparent border border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+                    Login
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </header>
