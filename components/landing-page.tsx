@@ -8,10 +8,11 @@ import Header from './header'
 interface LandingPageProps {
   onStartAssessment: (type: 'menstrual' | 'cancer' | 'both') => void
   userName?: string
+  isLoggedIn?: boolean
   onNavigate: (view: string) => void
 }
 
-export default function LandingPage({ onStartAssessment, userName = 'Ananya', onNavigate }: LandingPageProps) {
+export default function LandingPage({ onStartAssessment, userName = 'Ananya', isLoggedIn = false, onNavigate }: LandingPageProps) {
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 12) return 'Good morning'
