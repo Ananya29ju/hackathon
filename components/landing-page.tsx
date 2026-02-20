@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { AlertCircle, Heart, Shield } from 'lucide-react'
+import Link from 'next/link'
 
 interface LandingPageProps {
   onStartAssessment: () => void
@@ -11,12 +12,22 @@ export default function LandingPage({ onStartAssessment }: LandingPageProps) {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-primary text-primary-foreground py-4 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
             <Heart className="w-8 h-8" />
             OVIRA
-          </h1>
-          <p className="text-primary-foreground/80 mt-1">Health Risk Assessment</p>
+            </h1>
+            <p className="text-primary-foreground/80 mt-1">Health Risk Assessment</p>
+          </div>
+
+          <div>
+            <Link href="/login">
+              <Button size="sm" className="bg-transparent border border-primary text-primary-foreground">
+                Login
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
