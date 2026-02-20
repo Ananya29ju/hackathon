@@ -24,6 +24,36 @@ export function calculateMenstrualRisk(
   return Math.min(score, 25) // Cap at 25
 }
 
+export function calculateYoungMenstrualRisk(data: any): number {
+  let score = 0
+
+  const m = {
+    menarche: { 'Below 10': 3, '10–12': 0, '13–15': 0, 'Above 15': 2, 'Not started yet': 5 },
+    length: { '21–35 days (regular)': 0, 'Less than 21 days': 3, 'More than 35 days': 3, 'Irregular / varies every month': 5 },
+    regularity: { 'Yes, every month': 0, 'Sometimes delayed': 2, 'Often irregular': 4, 'Frequently missed': 5 },
+    duration: { '2–3 days': 1, '4–5 days (normal)': 0, '6–7 days': 2, 'More than 7 days': 4 },
+    heaviness: { 'Light': 0, 'Normal': 0, 'Heavy': 3, 'Very heavy with clots': 5 },
+    cramps: { 'No pain': 0, 'Mild pain': 1, 'Moderate pain': 3, 'Severe pain affecting routine': 5 },
+    weight: { 'No': 0, 'Slight': 1, 'Moderate': 3, 'Significant': 4 },
+    hair: { 'No': 0, 'Mild': 1, 'Moderate': 3, 'Severe': 5 },
+    missed: { 'Never': 0, 'Rarely': 1, 'Sometimes': 3, 'Frequently': 5 },
+    pcod: { 'No': 0, 'Suspected but not confirmed': 4, 'Yes, mild': 7, 'Yes, diagnosed': 10 }
+  }
+
+  score += (m.menarche as any)[data.menarcheAgeGroup] || 0
+  score += (m.length as any)[data.cycleLength] || 0
+  score += (m.regularity as any)[data.periodRegularity] || 0
+  score += (m.duration as any)[data.bleedingDuration] || 0
+  score += (m.heaviness as any)[data.bleedingHeaviness] || 0
+  score += (m.cramps as any)[data.crampsSeverity] || 0
+  score += (m.weight as any)[data.weightGain] || 0
+  score += (m.hair as any)[data.facialHairAcne] || 0
+  score += (m.missed as any)[data.missedPeriodsLong] || 0
+  score += (m.pcod as any)[data.pcodPcosDiagnosis] || 0
+
+  return Math.min(score, 50) // Cap at 50 for this detailed assessment
+}
+
 // Breast cancer risk scoring
 export function calculateBreastCancerRisk(factors: {
   familyHistoryBreast: boolean

@@ -11,9 +11,14 @@ interface ResultsPageProps {
 }
 
 export default function ResultsPage({ results, onRetake }: ResultsPageProps) {
+  const isMenstrualOnly = results.assessmentType === 'menstrual'
   const primaryRisk = results.overallRisks.primaryRisk
   const primaryRiskData = results.overallRisks.risks[primaryRisk]
-  const primaryCategory = getRiskCategory(primaryRiskData.score)
+
+  // Scoring for menstrual only
+  const menstrualScore = results.menstrualRisk
+  const menstrualCategory = menstrualScore < 5 ? 'low' : menstrualScore < 15 ? 'moderate' : 'high'
+  const primaryCategory = isMenstrualOnly ? menstrualCategory : getRiskCategory(primaryRiskData.score)
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,7 +27,7 @@ export default function ResultsPage({ results, onRetake }: ResultsPageProps) {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Heart className="w-6 h-6" />
-            Your Assessment Results
+            {isMenstrualOnly ? 'Menstrual Cycle Analysis' : 'Your Assessment Results'}
           </h1>
         </div>
       </header>
@@ -38,95 +43,127 @@ export default function ResultsPage({ results, onRetake }: ResultsPageProps) {
                   Important: Consult Your Healthcare Provider
                 </h2>
                 <p className="text-sm text-amber-800 dark:text-amber-300">
-                  These results are educational tools only. Please schedule an appointment with your doctor to discuss your personal risk factors and appropriate screening recommendations.
+                  These results are educational tools only. Please schedule an appointment with your doctor to discuss your personal health history.
                 </p>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* Primary Risk Alert */}
+        {/* Primary Risk/Analysis Alert */}
         <Card
           className={`mb-8 border-2 p-8 ${getRiskColor(primaryCategory)} border-current`}
         >
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Primary Risk Assessment</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              {isMenstrualOnly ? 'Menstrual Health Analysis' : 'Primary Risk Assessment'}
+            </h2>
             <p className={`text-lg font-semibold mb-4 ${getRiskTextColor(primaryCategory)}`}>
-              {primaryRiskData.name}
+              {isMenstrualOnly ? 'Hormonal & Cycle Stability' : primaryRiskData.name}
             </p>
             <div className="inline-block bg-white/50 dark:bg-black/20 rounded-lg p-6 mb-4">
               <div className={`text-5xl font-bold mb-2 ${getRiskTextColor(primaryCategory)}`}>
-                {primaryRiskData.score.toFixed(0)}
+                {isMenstrualOnly ? menstrualScore.toFixed(0) : primaryRiskData.score.toFixed(0)}
               </div>
               <p className={`text-sm font-medium ${getRiskTextColor(primaryCategory)}`}>
-                Risk Score (0-100)
+                {isMenstrualOnly ? 'Stability Score (0-25)' : 'Risk Score (0-100)'}
               </p>
             </div>
             <p className={`text-base font-semibold ${getRiskTextColor(primaryCategory)}`}>
-              {primaryCategory.charAt(0).toUpperCase() + primaryCategory.slice(1)} Risk
+              {primaryCategory.charAt(0).toUpperCase() + primaryCategory.slice(1)} {isMenstrualOnly ? 'Risk of Irregularity' : 'Risk'}
             </p>
             {primaryCategory === 'low' && (
               <p className="text-sm mt-4 text-green-700 dark:text-green-300">
-                Your assessment suggests a low risk profile. Continue regular screening with your healthcare provider.
+                {isMenstrualOnly
+                  ? 'Your cycle indicators appear healthy and regular. Continue monitoring and following up with regular checkups.'
+                  : 'Your assessment suggests a low risk profile. Continue regular screening with your healthcare provider.'
+                }
               </p>
             )}
             {primaryCategory === 'moderate' && (
               <p className="text-sm mt-4 text-amber-700 dark:text-amber-300">
-                Your assessment suggests a moderate risk profile. Discuss screening options with your healthcare provider.
+                {isMenstrualOnly
+                  ? 'There are some indicators of menstrual irregularity. Consider tracking your cycle more closely and discussing with your doctor.'
+                  : 'Your assessment suggests a moderate risk profile. Discuss screening options with your healthcare provider.'
+                }
               </p>
             )}
             {primaryCategory === 'high' && (
               <p className="text-sm mt-4 text-red-700 dark:text-red-300">
-                Your assessment suggests a high risk profile. Schedule a consultation with your healthcare provider soon.
+                {isMenstrualOnly
+                  ? 'Multiple factors suggest potential cycle health concerns. We recommend consulting with an OB-GYN for a detailed evaluation.'
+                  : 'Your assessment suggests a high risk profile. Schedule a consultation with your healthcare provider soon.'
+                }
               </p>
             )}
           </div>
         </Card>
 
-        {/* All Three Cancer Risks */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          {Object.entries(results.overallRisks.risks).map(([key, risk]: [string, any]) => {
-            const category = getRiskCategory(risk.score)
-            return (
-              <Card
-                key={key}
-                className={`p-6 border-2 ${getRiskColor(category)} border-current`}
-              >
-                <h3 className="font-semibold text-lg mb-4">{risk.name}</h3>
-                <div className="mb-4">
-                  {/* Risk Score Bar */}
-                  <div className="mb-3">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Risk Score
-                      </span>
-                      <span className={`font-bold ${getRiskTextColor(category)}`}>
-                        {risk.score.toFixed(0)}/100
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          category === 'low'
+        {/* Associated Cancer Risks (Only if not menstrual only) */}
+        {!isMenstrualOnly && (
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            {Object.entries(results.overallRisks.risks).map(([key, risk]: [string, any]) => {
+              const category = getRiskCategory(risk.score)
+              return (
+                <Card
+                  key={key}
+                  className={`p-6 border-2 ${getRiskColor(category)} border-current`}
+                >
+                  <h3 className="font-semibold text-lg mb-4">{risk.name}</h3>
+                  <div className="mb-4">
+                    {/* Risk Score Bar */}
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Risk Score
+                        </span>
+                        <span className={`font-bold ${getRiskTextColor(category)}`}>
+                          {risk.score.toFixed(0)}/100
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full ${category === 'low'
                             ? 'bg-green-500'
                             : category === 'moderate'
                               ? 'bg-amber-500'
                               : 'bg-red-500'
-                        }`}
-                        style={{ width: `${Math.min(risk.score, 100)}%` }}
-                      />
+                            }`}
+                          style={{ width: `${Math.min(risk.score, 100)}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <p
-                  className={`text-sm font-medium ${getRiskTextColor(category)}`}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)} Risk
-                </p>
-              </Card>
-            )
-          })}
-        </div>
+                  <p
+                    className={`text-sm font-medium ${getRiskTextColor(category)}`}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)} Risk
+                  </p>
+                </Card>
+              )
+            })}
+          </div>
+        )}
+
+        {isMenstrualOnly && (
+          <Card className="p-8 mb-8 border-pink-200 bg-pink-50 dark:bg-pink-950/20 dark:border-pink-900 border-2">
+            <h3 className="text-xl font-bold mb-6 text-pink-900 dark:text-pink-100">Menstrual Health Indicators</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="p-4 bg-white/50 dark:bg-black/20 rounded-xl">
+                <p className="text-sm text-pink-700 dark:text-pink-300 mb-1">Menarche Age</p>
+                <p className="text-2xl font-bold text-pink-900 dark:text-pink-100">{results.menarcheAge} yr</p>
+              </div>
+              <div className="p-4 bg-white/50 dark:bg-black/20 rounded-xl">
+                <p className="text-sm text-pink-700 dark:text-pink-300 mb-1">Cycle Regularity</p>
+                <p className="text-2xl font-bold text-pink-900 dark:text-pink-100 capitalize">{results.cycleRegularity}</p>
+              </div>
+              <div className="p-4 bg-white/50 dark:bg-black/20 rounded-xl">
+                <p className="text-sm text-pink-700 dark:text-pink-300 mb-1">Menopause Status</p>
+                <p className="text-2xl font-bold text-pink-900 dark:text-pink-100">{results.menopauseAge ? `Post (${results.menopauseAge} yr)` : 'Pre'}</p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Assessment Details */}
         <Card className="p-8 mb-8">
@@ -185,49 +222,53 @@ export default function ResultsPage({ results, onRetake }: ResultsPageProps) {
 
             {/* Right Column */}
             <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">Reproductive History</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Number of Children</span>
-                    <span className="font-medium text-foreground">
-                      {results.numberOfChildren}
-                    </span>
-                  </div>
-                  {results.ageFirstBirth && (
+              {!isMenstrualOnly && (
+                <div>
+                  <h3 className="font-semibold text-foreground mb-3">Reproductive History</h3>
+                  <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">First Birth Age</span>
+                      <span className="text-muted-foreground">Number of Children</span>
                       <span className="font-medium text-foreground">
-                        {results.ageFirstBirth} years
+                        {results.numberOfChildren}
                       </span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Hormone Therapy</span>
-                    <span className="font-medium text-foreground">
-                      {results.hormoneTherapy ? 'Yes' : 'No'}
-                    </span>
+                    {results.ageFirstBirth && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">First Birth Age</span>
+                        <span className="font-medium text-foreground">
+                          {results.ageFirstBirth} years
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Hormone Therapy</span>
+                      <span className="font-medium text-foreground">
+                        {results.hormoneTherapy ? 'Yes' : 'No'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">Family History</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Breast Cancer</span>
-                    <span className="font-medium text-foreground">
-                      {results.familyHistoryBreast ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Ovarian Cancer</span>
-                    <span className="font-medium text-foreground">
-                      {results.familyHistoryOvarian ? 'Yes' : 'No'}
-                    </span>
+              {!isMenstrualOnly && (
+                <div>
+                  <h3 className="font-semibold text-foreground mb-3">Family History</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Breast Cancer</span>
+                      <span className="font-medium text-foreground">
+                        {results.familyHistoryBreast ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ovarian Cancer</span>
+                      <span className="font-medium text-foreground">
+                        {results.familyHistoryOvarian ? 'Yes' : 'No'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </Card>
