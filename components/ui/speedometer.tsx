@@ -60,11 +60,11 @@ export default function Speedometer({
     const rotation = percentage * 180 - 90
 
     const getColor = () => {
-        if (!isCalculated) return '#8b5cf6' // violet-500 during scanning
-        if (riskCategory === 'low') return '#10b981'
-        if (riskCategory === 'moderate') return '#f59e0b'
-        if (riskCategory === 'high') return '#ef4444'
-        return '#ec4899'
+        if (!isCalculated) return '#a78bfa' // soft lavender during scanning
+        if (riskCategory === 'low') return '#10b981' // emerald-500
+        if (riskCategory === 'moderate') return '#f59e0b' // amber-500
+        if (riskCategory === 'high') return '#f43f5e' // rose-500 (Soft Coral)
+        return '#f472b6' // pink-400 default
     }
 
     const arcColor = getColor()

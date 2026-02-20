@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ChevronLeft, Shield } from 'lucide-react'
@@ -20,6 +20,10 @@ export default function Home() {
   const [originalAssessmentType, setOriginalAssessmentType] = useState<'menstrual' | 'cancer' | 'both'>('menstrual')
   const [lastFormData, setLastFormData] = useState<any>(null)
   const [results, setResults] = useState<any>(null)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [currentPage])
 
   const handleStartAssessment = (type: 'menstrual' | 'cancer' | 'both') => {
     setOriginalAssessmentType(type)

@@ -31,7 +31,7 @@ export default function Header({
     const sidebarItems = [
         { icon: User, label: 'Profile', id: 'profile' },
         { icon: Calendar, label: 'Menstrual Health', id: 'menstrual' },
-        { icon: Activity, label: 'Cancer Validation', id: 'cancer' },
+        { icon: Activity, label: 'SheShield Screening', id: 'cancer' },
         { icon: Map, label: 'Heat Map', id: 'heatmap' },
         { icon: PlayCircle, label: 'Educational Videos', id: 'videos' },
         { icon: LogOut, label: 'Logout', id: 'logout' },
@@ -147,6 +147,11 @@ export default function Header({
                         </Link>
                     )}
                 </div>
+            </div>
+            <div className="max-w-6xl mx-auto px-4 md:px-8 mt-2">
+                <p className="text-[10px] md:text-xs font-bold text-center text-muted-foreground/60 uppercase tracking-widest bg-muted/30 py-1.5 rounded-full border border-border/20">
+                    Important: Our tools are educational. Always consult a healthcare professional for clinical diagnosis.
+                </p>
             </div>
         </header>
     )
