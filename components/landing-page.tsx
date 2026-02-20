@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { AlertCircle, Heart, Shield, User, Calendar, Activity, Map, PlayCircle, LogOut, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +44,7 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', on
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-primary text-primary-foreground py-4 px-4 md:px-8 border-b">
-          <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <div className="max-w-4xl mx-auto flex justify-between items-center w-full">
             <div className="flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -94,6 +95,14 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', on
                 </h1>
                 <p className="text-primary-foreground/80 mt-1">Health Risk Assessment</p>
               </div>
+            </div>
+
+            <div>
+              <Link href="/login">
+                <Button size="sm" className="bg-transparent border border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+                  Login
+                </Button>
+              </Link>
             </div>
           </div>
         </header>
