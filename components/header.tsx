@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Heart, User, Calendar, Activity, Map, PlayCircle, LogOut, Menu } from 'lucide-react'
+import { Heart, User, Calendar, Activity, Map, PlayCircle, LogOut, Menu, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import {
@@ -30,6 +30,7 @@ export default function Header({
 }: HeaderProps) {
     const sidebarItems = [
         { icon: User, label: 'Profile', id: 'profile' },
+        { icon: Shield, label: 'Wellness Hub', id: 'preventive-care' },
         { icon: Calendar, label: 'Menstrual Health', id: 'menstrual' },
         { icon: Activity, label: 'SheShield Screening', id: 'cancer' },
         { icon: Map, label: 'Heat Map', id: 'heatmap' },

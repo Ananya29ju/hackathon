@@ -234,10 +234,10 @@ export default function PreventiveCare({ onNavigate, onStartAssessment, userName
                     {/* Menstrual Health and Wellness Section */}
                     {preventionTasks.length > 0 && (
                         <section className="space-y-10">
-                            <div className="flex items-center gap-4">
-                                <div className="w-1.5 h-10 bg-pink-500 rounded-full" />
-                                <h2 className="text-3xl font-black tracking-tight">Menstrual Health and Wellness</h2>
-                            </div>
+                            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                                <Heart className="w-8 h-8 text-pink-500 fill-pink-500/10" />
+                                Menstrual Health and Wellness
+                            </h2>
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {preventionTasks.map(task => renderCard(task))}
                             </div>

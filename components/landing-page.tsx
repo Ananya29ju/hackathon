@@ -48,7 +48,7 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             Hi {userName}, {greeting}! Let's check in on your health today with our evidence-based, supportive assessment tool.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-8 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 max-w-3xl mx-auto">
             <Button
               onClick={() => onStartAssessment('cancer')}
               size="lg"
@@ -65,6 +65,15 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             >
               <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span className="text-xs uppercase tracking-widest">Menstrual Validation</span>
+            </Button>
+
+            <Button
+              onClick={() => onNavigate('preventive-care')}
+              size="lg"
+              className="h-16 px-6 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-black shadow-lg shadow-accent/10 flex flex-col items-center justify-center gap-1 group transition-all"
+            >
+              <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs uppercase tracking-widest">Wellness Hub</span>
             </Button>
           </div>
         </section>
@@ -214,6 +223,8 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             </div>
           </Card>
         </section>
+
+
 
       </main>
 

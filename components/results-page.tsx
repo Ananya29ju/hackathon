@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -12,7 +13,10 @@ import {
   MapPin,
   FileText,
   Stethoscope,
-  AlertCircle
+  AlertCircle,
+  Copy,
+  CheckCircle2,
+  ChevronLeft
 } from 'lucide-react'
 import { getRiskCategory } from '@/lib/risk-calculator'
 import Speedometer from './ui/speedometer'
@@ -105,6 +109,26 @@ export default function ResultsPage({
 
   const category = getRiskCategory(score)
   const config = RISK_CONFIG[category]
+
+  const [copied, setCopied] = useState(false)
+
+  const handleCopySummary = () => {
+    const summary = `
+HEALTH ASSESSMENT SUMMARY (Educational Only)
+Date: ${new Date().toLocaleDateString()}
+Profile: ${results.age} yrs, BMI: ${results.bmi}
+
+PRIMARY ANALYSIS: ${isMenstrualOnly ? 'Hormonal Stability' : (results.overallRisks?.risks?.[primaryRiskKey]?.name || 'N/A')}
+Risk Category: ${category.toUpperCase()}
+Risk Score: ${score}/100
+
+NOTES: These results were generated using a digital self-assessment tool and are intended for clinical discussion.
+    `.trim()
+
+    navigator.clipboard.writeText(summary)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/30 via-background to-primary/5 selection:bg-primary/20">
@@ -202,27 +226,44 @@ export default function ResultsPage({
               </div>
             </div>
 
-            {/* Dynamic Action Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700">
               {config.buttons.map((btn, idx) => (
                 <Button
                   key={idx}
+                  onClick={() => {
+                    if (btn.label.includes("Preventive Care")) {
+                      onNavigate('preventive-care')
+                    } else if (btn.label.includes("Nearby") || btn.label.includes("Hospital") || btn.label.includes("Specialist") || btn.label.includes("Clinics")) {
+                      window.open(`https://www.google.com/maps/search/${encodeURIComponent(btn.label)}`, '_blank')
+                    }
+                  }}
                   variant={idx === 0 ? "default" : "secondary"}
                   className={cn(
                     "h-20 rounded-[2rem] text-lg font-black gap-3 shadow-xl hover:scale-105 active:scale-95 transition-all",
                     idx === 0 ? "bg-primary hover:bg-primary/90 text-white shadow-primary/20" : "bg-white/80 dark:bg-white/10 dark:text-white"
                   )}
                 >
-                  {(btn as any).icon}
-                  {(btn as any).label}
+                  {btn.icon}
+                  {btn.label}
                 </Button>
               ))}
             </div>
           </div>
         </Card>
 
-        {/* Supporting Secondary Actions */}
-        <div className="flex flex-col gap-6 items-center justify-center pt-8 animate-in fade-in duration-1000 delay-1000">
+        <div className="flex flex-col gap-8 items-center justify-center pt-8 animate-in fade-in duration-1000 delay-1000">
+          <Button
+            onClick={handleCopySummary}
+            variant="outline"
+            className={cn(
+              "h-16 px-10 rounded-[2rem] gap-3 font-black transition-all hover:scale-105 border-2",
+              copied ? "border-emerald-500 text-emerald-600 bg-emerald-50" : "border-primary/20 text-primary hover:bg-primary/5"
+            )}
+          >
+            {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+            {copied ? "Copied to Clipboard!" : "Copy Summary for Doctor"}
+          </Button>
+
           {showCancerPrompt && onContinueToCancer && (
             <div className="flex flex-col items-center gap-4 text-center">
               <p className="text-xl font-bold text-foreground">
@@ -239,6 +280,14 @@ export default function ResultsPage({
           )}
 
           <div className="flex flex-col sm:flex-row gap-4">
+            <Button
+              onClick={() => onNavigate('preventive-care')}
+              variant="outline"
+              className="h-16 px-10 rounded-[2rem] gap-3 font-black text-accent-foreground border-accent/20 hover:bg-accent/5 transition-all hover:scale-105"
+            >
+              <Heart className="w-5 h-5 text-accent" />
+              Visit Wellness Hub
+            </Button>
             <Button
               onClick={() => onNavigate('heatmap')}
               variant="outline"
