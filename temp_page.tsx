@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -19,11 +19,10 @@ import OvarianCancerDetails from '@/components/ovarian-cancer-details'
 import EndometrialCancerDetails from '@/components/endometrial-cancer-details'
 import { useUser, signOut } from '@/lib/auth'
 import supabase from '@/lib/supabaseClient'
-import AshaDashboard from '@/components/asha-dashboard'
 
 export default function Home() {
   const { user, loading } = useUser()
-  const [currentPage, setCurrentPage] = useState<'landing' | 'questionnaire' | 'results' | 'profile' | 'heatmap' | 'videos' | 'asha-patients' | 'preventive-care' | 'hygiene-details' | 'dietary-details' | 'lifestyle-details' | 'breast-cancer-details' | 'ovarian-cancer-details' | 'endometrial-cancer-details'>('landing')
+  const [currentPage, setCurrentPage] = useState<'landing' | 'questionnaire' | 'results' | 'profile' | 'heatmap' | 'videos' | 'preventive-care' | 'hygiene-details' | 'dietary-details' | 'lifestyle-details' | 'breast-cancer-details' | 'ovarian-cancer-details' | 'endometrial-cancer-details'>('landing')
   const [assessmentType, setAssessmentType] = useState<'menstrual' | 'cancer' | 'both'>('menstrual')
   const [originalAssessmentType, setOriginalAssessmentType] = useState<'menstrual' | 'cancer' | 'both'>('menstrual')
   const [lastFormData, setLastFormData] = useState<any>(null)
@@ -34,10 +33,6 @@ export default function Home() {
   }, [currentPage])
 
   const handleStartAssessment = (type: 'menstrual' | 'cancer' | 'both') => {
-    if (!user) {
-      window.location.href = '/login'
-      return
-    }
     setOriginalAssessmentType(type)
     setAssessmentType(type)
     setCurrentPage('questionnaire')
@@ -69,55 +64,35 @@ export default function Home() {
       }
 
       try {
-        const assessmentData = {
+        await supabase.from('assessments').insert({
           user_id: user.id,
-          age: parseInt(data.age) || 0,
+          age: parseInt(data.age),
           height: data.height ? parseFloat(data.height) : null,
           weight: data.weight ? parseFloat(data.weight) : null,
           bmi: data.bmi ? parseFloat(data.bmi) : null,
-          patient_name: data.patientName || null,
-          patient_phone: data.patientPhone || null,
-          primary_risk: data.overallRisks?.primaryRisk || 'Unknown',
-          menstrual_score: typeof data.menstrualRisk === 'number' ? data.menstrualRisk : (data.menstrualRisk?.score || 0),
-          breast_risk_score: data.breastRisk?.score || 0,
-          ovarian_risk_score: data.ovarianRisk?.score || 0,
-          endometrial_risk_score: data.endometrialRisk?.score || 0,
-          // Store raw data as JSONB for safety
-          symptoms: data,
+          diabetic: data.diabetic,
+          menarche_age: data.menarcheAge ? parseInt(data.menarcheAge) : null,
+          cycle_regularity: data.cycleRegularity,
+          number_of_children: data.numberOfChildren ? parseInt(data.numberOfChildren) : 0,
+          age_first_birth: data.ageFirstBirth ? parseInt(data.ageFirstBirth) : null,
+          hormone_therapy: data.hormoneTherapy,
+          family_history_breast: data.familyHistoryBreast,
+          family_history_ovarian: data.familyHistoryOvarian,
+          breast_risk_score: data.breastRisk?.score,
+          ovarian_risk_score: data.ovarianRisk?.score,
+          endometrial_risk_score: data.endometrialRisk?.score,
+          menstrual_score: data.menstrualRisk,
+          primary_risk: data.overallRisks?.primaryRisk,
           latitude,
-          longitude,
-          created_at: new Date().toISOString()
-        }
-
-        console.log('Attempting to save assessment:', assessmentData)
-
-        const { data: insertData, error: insertError } = await supabase
-          .from('assessments')
-          .insert(assessmentData)
-
-        if (insertError) {
-          console.error('Supabase Insert Error:', insertError)
-          // Try an ultra-minimal insert if it failed (only core columns)
-          const minimalData = {
-            user_id: user.id,
-            symptoms: data
-          }
-          console.log('Attempting ultra-minimal fallback save:', minimalData)
-          await supabase.from('assessments').insert(minimalData)
-        } else {
-          console.log('Assessment saved successfully:', insertData)
-        }
+          longitude
+        })
       } catch (err) {
-        console.error('Error in handleSubmitQuestionnaire catch:', err)
+        console.error('Error saving assessment:', err)
       }
     }
   }
 
   const handleContinueToCancer = () => {
-    if (!user) {
-      window.location.href = '/login'
-      return
-    }
     setAssessmentType('cancer')
     setCurrentPage('questionnaire')
     // We don't reset results yet, but QuestionnaireForm will start with lastFormData
@@ -135,14 +110,6 @@ export default function Home() {
       window.location.reload()
       return
     }
-
-    // Protect certain views
-    const protectedViews = ['profile', 'heatmap', 'asha-patients', 'questionnaire']
-    if (protectedViews.includes(view) && !user) {
-      window.location.href = '/login'
-      return
-    }
-
     setCurrentPage(view as any)
   }
 
@@ -162,7 +129,6 @@ export default function Home() {
           userName={user?.user_metadata?.name || user?.email || 'User'}
           isLoggedIn={!!user}
           onNavigate={handleNavigate}
-          userRole={user?.user_metadata?.role}
         />
       )}
 
@@ -173,14 +139,13 @@ export default function Home() {
         />
       )}
 
-      {(currentPage === 'heatmap' || currentPage === 'videos' || currentPage === 'asha-patients') && (
+      {(currentPage === 'heatmap' || currentPage === 'videos') && (
         <div className="min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/30 via-background to-primary/5">
           <Header
             onNavigate={handleNavigate}
             onStartAssessment={handleStartAssessment}
             userName={user?.user_metadata?.name || user?.email || 'User'}
             isLoggedIn={!!user}
-            userRole={user?.user_metadata?.role}
           />
           <div className="p-8 md:p-12 flex-1 flex flex-col items-center">
             <div className="w-full max-w-4xl space-y-8">
@@ -196,17 +161,15 @@ export default function Home() {
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 <div className="space-y-4">
                   <p className="text-xs font-black uppercase tracking-[0.3em] text-primary/60">
-                    {currentPage === 'heatmap' ? 'Live Monitoring' : currentPage === 'asha-patients' ? 'ASHA Command Center' : 'Coming Soon'}
+                    {currentPage === 'heatmap' ? 'Live Monitoring' : 'Coming Soon'}
                   </p>
                   <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-foreground capitalize">
-                    {currentPage === 'asha-patients' ? 'Patient Registry' : currentPage.replace('-', ' ')}
+                    {currentPage.replace('-', ' ')}
                   </h1>
                 </div>
 
                 {currentPage === 'heatmap' ? (
                   <HeatMap />
-                ) : currentPage === 'asha-patients' ? (
-                  <AshaDashboard />
                 ) : (
                   <Card className="p-16 md:p-24 text-center rounded-[4rem] border-none shadow-2xl bg-white/60 dark:bg-black/40 backdrop-blur-3xl animate-in zoom-in-95 duration-1000">
                     <div className="max-w-md mx-auto space-y-8">
@@ -219,87 +182,64 @@ export default function Home() {
                       </div>
                     </div>
                   </Card>
-                )
-                }
-              </div >
-            </div >
-          </div >
-        </div >
-      )
-      }
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {
-        currentPage === 'questionnaire' && (
-          <QuestionnaireForm
-            assessmentType={assessmentType}
-            onSubmit={handleSubmitQuestionnaire}
-            onNavigate={handleNavigate}
-            onStartAssessment={handleStartAssessment}
-            initialData={lastFormData}
-            isLoggedIn={!!user}
-            userName={user?.user_metadata?.name || user?.email || 'User'}
-            userRole={user?.user_metadata?.role}
-          />
-        )
-      }
-      {
-        currentPage === 'preventive-care' && (
-          <PreventiveCare
-            onNavigate={handleNavigate}
-            onStartAssessment={handleStartAssessment}
-            userName={user?.user_metadata?.name || user?.email || 'User'}
-            results={results}
-            userRole={user?.user_metadata?.role}
-          />
-        )
-      }
+      {currentPage === 'questionnaire' && (
+        <QuestionnaireForm
+          assessmentType={assessmentType}
+          onSubmit={handleSubmitQuestionnaire}
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          initialData={lastFormData}
+          isLoggedIn={!!user}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+      {currentPage === 'preventive-care' && (
+        <PreventiveCare
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+          results={results}
+        />
+      )}
 
-      {
-        currentPage === 'hygiene-details' && (
-          <HygieneDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
-        )
-      }
-      {
-        currentPage === 'dietary-details' && (
-          <DietaryDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
-        )
-      }
-      {
-        currentPage === 'lifestyle-details' && (
-          <LifestyleDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
-        )
-      }
-      {
-        currentPage === 'breast-cancer-details' && (
-          <BreastCancerDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
-        )
-      }
-      {
-        currentPage === 'ovarian-cancer-details' && (
-          <OvarianCancerDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
-        )
-      }
-      {
-        currentPage === 'endometrial-cancer-details' && (
-          <EndometrialCancerDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
-        )
-      }
+      {currentPage === 'hygiene-details' && (
+        <HygieneDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
+      )}
+      {currentPage === 'dietary-details' && (
+        <DietaryDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
+      )}
+      {currentPage === 'lifestyle-details' && (
+        <LifestyleDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
+      )}
+      {currentPage === 'breast-cancer-details' && (
+        <BreastCancerDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
+      )}
+      {currentPage === 'ovarian-cancer-details' && (
+        <OvarianCancerDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
+      )}
+      {currentPage === 'endometrial-cancer-details' && (
+        <EndometrialCancerDetails onNavigate={handleNavigate} onStartAssessment={handleStartAssessment} />
+      )}
 
-      {
-        currentPage === 'results' && results && (
-          <ResultsPage
-            results={results}
-            onRetake={handleRetake}
-            onNavigate={handleNavigate}
-            onStartAssessment={handleStartAssessment}
-            onContinueToCancer={handleContinueToCancer}
-            showCancerPrompt={assessmentType === 'menstrual'}
-            isLoggedIn={!!user}
-            userName={user?.user_metadata?.name || user?.email || 'User'}
-            userRole={user?.user_metadata?.role}
-          />
-        )
-      }
-    </main >
+      {currentPage === 'results' && results && (
+        <ResultsPage
+          results={results}
+          onRetake={handleRetake}
+          onNavigate={handleNavigate}
+          onStartAssessment={handleStartAssessment}
+          onContinueToCancer={handleContinueToCancer}
+          showCancerPrompt={assessmentType === 'menstrual'}
+          isLoggedIn={!!user}
+          userName={user?.user_metadata?.name || user?.email || 'User'}
+        />
+      )}
+    </main>
   )
 }

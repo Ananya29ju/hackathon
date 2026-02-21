@@ -107,9 +107,10 @@ export default function IndiaMap({ points, getPointCategory }: IndiaMapProps) {
             {/* Localized Hotspot Highlighting */}
             {points.map((point, i) => {
                 const category = getPointCategory(point)
-                const color = category === 'critical' ? '#9333ea' :
-                    category === 'high' ? '#ef4444' :
-                        category === 'moderate' ? '#f59e0b' : '#10b981'
+                const color = category === 'critical' ? '#e11d48' : // Deep Pink (Rose 600)
+                    category === 'high' ? '#f472b6' :           // Pink (Pink 400)
+                        category === 'moderate' ? '#fdba74' :   // Peach (Orange 300)
+                            '#86efac'                           // Pista (Green 300)
 
                 return (
                     <React.Fragment key={i}>

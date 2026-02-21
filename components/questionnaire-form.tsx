@@ -120,6 +120,7 @@ interface QuestionnaireFormProps {
   initialData?: any
   isLoggedIn?: boolean
   userName?: string
+  userRole?: string
 }
 
 export default function QuestionnaireForm({
@@ -129,25 +130,32 @@ export default function QuestionnaireForm({
   onStartAssessment,
   initialData,
   isLoggedIn = false,
-  userName = 'User'
+  userName = 'User',
+  userRole
 }: QuestionnaireFormProps) {
   const [step, setStep] = useState(1)
-  const [formData, setFormData] = useState(initialData || {
-    age: '',
-    height: '165',
-    weight: '60',
-    menstrualStage: '',
-    periodsStopped: '',
-    breastChange: '',
-    nippleDischarge: '',
-    abnormalBleeding: '',
-    pelvicPain: '',
-    weightLossFatigue: '',
-    bloatingSwelling: '',
-    familyHistoryCancer: '',
-    hormonalHistory: '',
-    pastReproductiveIssues: '',
-    symptomDuration: '',
+  const [formData, setFormData] = useState(() => {
+    const defaults = {
+      age: '',
+      patientName: '',
+      patientPhone: '',
+      height: '165',
+      weight: '60',
+      menstrualStage: '',
+      periodsStopped: '',
+      breastChange: '',
+      nippleDischarge: '',
+      abnormalBleeding: '',
+      pelvicPain: '',
+      weightLossFatigue: '',
+      bloatingSwelling: '',
+      familyHistoryCancer: '',
+      hormonalHistory: '',
+      pastReproductiveIssues: '',
+      symptomDuration: '',
+      role: userRole || ''
+    }
+    return initialData ? { ...defaults, ...initialData } : defaults
   })
 
   useEffect(() => {
@@ -176,8 +184,11 @@ export default function QuestionnaireForm({
   }
 
   const menstrualQuestions = getMenstrualQuestions()
+  const isAsha = isLoggedIn && (userRole === 'asha' || formData.role === 'asha')
+  const patientStep = isAsha ? 1 : 0
   const menstrualSteps = isMenstrual ? (isOver40 ? 3 : 2) : 0
-  const totalSteps = 1 + menstrualSteps + (isCancer ? 2 : 0)
+  const ageStep = isAsha ? 2 : 1
+  const totalSteps = patientStep + 1 + menstrualSteps + (isCancer ? 2 : 0)
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }))
@@ -258,9 +269,9 @@ export default function QuestionnaireForm({
     onSubmit({
       ...formData,
       menstrualRisk: mRisk,
-      breastRisk: breastRisk.score,
-      ovarianRisk: ovarianRisk.score,
-      endometrialRisk: endometrialRisk.score,
+      breastRisk: breastRisk,
+      ovarianRisk: ovarianRisk,
+      endometrialRisk: endometrialRisk,
       overallRisks,
       bmi: calculateBMI(),
       assessmentType: assessmentType === 'both' ? 'both' : (isCancer ? 'cancer' : 'menstrual')
@@ -268,10 +279,13 @@ export default function QuestionnaireForm({
   }
 
   const canProceed = () => {
-    if (step === 1) return !!formData.age && ageVal >= 8
+    if (isAsha && step === 1) return !!formData.patientName && !!formData.patientPhone
+    if (step === ageStep) return !!formData.age && ageVal >= 8
 
-    if (isMenstrual && step > 1 && step <= (1 + menstrualSteps)) {
-      const menstrualSubStep = step - 1
+    const menstrualStart = ageStep + 1
+    const menstrualEnd = ageStep + menstrualSteps
+    if (isMenstrual && step >= menstrualStart && step <= menstrualEnd) {
+      const menstrualSubStep = step - ageStep
       if (isUnder40) {
         if (menstrualSubStep === 1) return menstrualQuestions.slice(0, 5).every(q => !!(formData as any)[q.id])
         if (menstrualSubStep === 2) return menstrualQuestions.slice(5).every(q => !!(formData as any)[q.id])
@@ -279,13 +293,10 @@ export default function QuestionnaireForm({
         if (menstrualSubStep === 1) return !!formData.periodsStopped
         if (menstrualSubStep === 2) return menstrualQuestions.slice(0, 5).every(q => !!(formData as any)[q.id])
         if (menstrualSubStep === 3) return menstrualQuestions.slice(5).every(q => !!(formData as any)[q.id])
-      } else {
-        // If age is typed but invalid somehow (e.g. 0)
-        return false
       }
     }
 
-    const cancerStepBase = 1 + menstrualSteps
+    const cancerStepBase = ageStep + menstrualSteps
     if (isCancer && step > cancerStepBase) {
       const cancerSubStep = step - cancerStepBase
       if (cancerSubStep === 1) return CANCER_QUESTIONS.slice(0, 5).every(q => !!(formData as any)[q.id])
@@ -294,40 +305,53 @@ export default function QuestionnaireForm({
     return false
   }
 
-  const renderQuestion = (q: { id: string; label: string; options: string[] }) => (
-    <div key={q.id} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Label className="text-lg font-bold text-foreground/80 leading-tight block">{q.label}</Label>
-      <RadioGroup
-        value={(formData as any)[q.id]}
-        onValueChange={(value) => handleInputChange(q.id, value)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-3"
-      >
-        {q.options.map((option) => {
-          const isSelected = (formData as any)[q.id] === option;
-          return (
-            <div
-              key={option}
-              className={cn(
-                "flex items-center space-x-3 rounded-2xl p-4 border-2 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md",
-                isSelected
-                  ? "border-primary bg-primary/5 shadow-primary/10"
-                  : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
-              )}
-              onClick={() => handleInputChange(q.id, option)}
-            >
-              <RadioGroupItem value={option} id={`${q.id}-${option}`} className="w-5 h-5 border-2 border-primary/40 data-[state=checked]:border-primary" />
-              <Label htmlFor={`${q.id}-${option}`} className="font-semibold text-sm cursor-pointer flex-1 py-1">
-                {option}
-              </Label>
-            </div>
-          );
-        })}
-      </RadioGroup>
-    </div>
-  )
+  const renderQuestion = (q: { id: string; label: string; options: string[] }) => {
+    const displayLabel = isAsha
+      ? q.label
+        .replace(/\byour\b/gi, "the patient's")
+        .replace(/\byou\b/gi, "the patient")
+        .replace(/Do the patient\b/g, "Does the patient")
+        .replace(/Have the patient\b/g, "Has the patient")
+        .replace(/Are the patient\b/g, "Is the patient")
+      : q.label;
 
-  const menstrualActive = isMenstrual && step > 1 && step <= (1 + menstrualSteps)
-  const cancerActive = isCancer && step > (1 + menstrualSteps)
+    return (
+      <div key={q.id} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Label className="text-lg font-bold text-foreground/80 leading-tight block">{displayLabel}</Label>
+        <RadioGroup
+          value={(formData as any)[q.id]}
+          onValueChange={(value) => handleInputChange(q.id, value)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-3"
+        >
+          {q.options.map((option) => {
+            const isSelected = (formData as any)[q.id] === option;
+            return (
+              <div
+                key={option}
+                className={cn(
+                  "flex items-center space-x-3 rounded-2xl p-4 border-2 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-primary/10"
+                    : "border-muted/40 hover:border-primary/20 hover:bg-muted/30"
+                )}
+                onClick={() => handleInputChange(q.id, option)}
+              >
+                <RadioGroupItem value={option} id={`${q.id}-${option}`} className="w-5 h-5 border-2 border-primary/40 data-[state=checked]:border-primary" />
+                <Label htmlFor={`${q.id}-${option}`} className="font-semibold text-sm cursor-pointer flex-1 py-1">
+                  {option}
+                </Label>
+              </div>
+            );
+          })}
+        </RadioGroup>
+      </div>
+    )
+  }
+
+  const menstrualActive = isMenstrual && step > ageStep && step <= (ageStep + menstrualSteps)
+  const cancerActive = isCancer && step > (ageStep + menstrualSteps)
+  const menstrualSubStep = step - ageStep
+  const cancerSubStep = step - ageStep - menstrualSteps
 
   return (
     <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10 selection:bg-primary/20">
@@ -350,7 +374,11 @@ export default function QuestionnaireForm({
                     ? 'Cycle Health'
                     : assessmentType === 'cancer'
                       ? 'SheShield Screening'
-                      : 'Full Health Review'
+                      : step === 1
+                        ? 'Full Health Review'
+                        : step <= (1 + menstrualSteps)
+                          ? 'Part 1: Menstrual Health'
+                          : 'Part 2: SheShield Screening'
                   }
                 </h1>
               </div>
@@ -372,16 +400,58 @@ export default function QuestionnaireForm({
             </div>
           </div>
 
-          <Card className="p-8 md:p-12 rounded-[3rem] border-none shadow-2xl shadow-primary/5 bg-white/90 dark:bg-black/60 backdrop-blur-2xl animate-in zoom-in-95 duration-500">
-            {step === 1 && (
+          <Card className="p-8 md:p-12 rounded-[3rem] border-none shadow-2xl shadow-primary/5 bg-white/90 dark:bg-black/40 backdrop-blur-xl rounded-[2.5rem] p-4 text-primary" style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+            {isAsha && step === 1 && (
+              <div className="space-y-10">
+                <div className="space-y-8 text-center md:text-left">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Patient Information</h2>
+                    <p className="text-muted-foreground font-medium italic">You are filling this as an ASHA worker. Please enter the name of the person you are assisting.</p>
+                  </div>
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="patientName" className="text-lg font-bold text-foreground/70 block px-1">What is the Patient's Name?</Label>
+                      <Input
+                        id="patientName"
+                        value={formData.patientName}
+                        onChange={(e) => handleInputChange('patientName', e.target.value)}
+                        className="h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all border-muted/30 focus:border-primary"
+                        placeholder="Enter Full Name"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="patientPhone" className="text-lg font-bold text-foreground/70 block px-1">What is the Patient's Phone Number?</Label>
+                      <Input
+                        id="patientPhone"
+                        type="tel"
+                        value={formData.patientPhone}
+                        onChange={(e) => handleInputChange('patientPhone', e.target.value)}
+                        className="h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all border-muted/30 focus:border-primary"
+                        placeholder="+91 XXXXX XXXXX"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === (isAsha ? 2 : 1) && (
               <div className="space-y-10">
                 <div className="space-y-8 text-center md:text-left">
                   <div className="space-y-2">
                     <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Basic Information</h2>
-                    <p className="text-muted-foreground font-medium italic">Your age helps define the most relevant health questions.</p>
+                    <p className="text-muted-foreground font-medium italic">
+                      {isAsha
+                        ? "The patient's age helps define the most relevant health questions."
+                        : "Your age helps define the most relevant health questions."
+                      }
+                    </p>
                   </div>
                   <div className="space-y-4">
-                    <Label className="text-lg font-bold text-foreground/70 block">How old are you?</Label>
+                    <Label className="text-lg font-bold text-foreground/70 block px-1">
+                      {isAsha ? "How old is the patient?" : "How old are you?"}
+                    </Label>
                     <Input
                       type="number"
                       min="8"
@@ -411,9 +481,9 @@ export default function QuestionnaireForm({
               <div className="space-y-10">
                 {isUnder40 && (
                   <div className="space-y-10">
-                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{step === 2 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
+                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{menstrualSubStep === 1 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
                     <div className="space-y-10">
-                      {(step - 1) === 1
+                      {menstrualSubStep === 1
                         ? menstrualQuestions.slice(0, 5).map((q) => renderQuestion(q))
                         : menstrualQuestions.slice(5).map((q) => renderQuestion(q))
                       }
@@ -422,7 +492,7 @@ export default function QuestionnaireForm({
                 )}
                 {isOver40 && (
                   <div className="space-y-10">
-                    {(step - 1) === 1 && (
+                    {menstrualSubStep === 1 && (
                       <div className="space-y-10">
                         <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Period Status</h2>
                         {renderQuestion({
@@ -432,11 +502,11 @@ export default function QuestionnaireForm({
                         })}
                       </div>
                     )}
-                    {(step - 1) > 1 && (
+                    {menstrualSubStep > 1 && (
                       <div className="space-y-10">
-                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{(step - 1) === 2 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
+                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{menstrualSubStep === 2 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
                         <div className="space-y-10">
-                          {(step - 1) === 2
+                          {menstrualSubStep === 2
                             ? menstrualQuestions.slice(0, 5).map((q) => renderQuestion(q))
                             : menstrualQuestions.slice(5).map((q) => renderQuestion(q))
                           }
@@ -450,9 +520,9 @@ export default function QuestionnaireForm({
 
             {cancerActive && (
               <div className="space-y-10">
-                <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{(step - 1 - menstrualSteps) === 1 ? 'Clinical Symptoms' : 'Personal Patterns'}</h2>
+                <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{cancerSubStep === 1 ? 'Clinical Symptoms' : 'Personal Patterns'}</h2>
                 <div className="space-y-10">
-                  {(step - 1 - menstrualSteps) === 1
+                  {cancerSubStep === 1
                     ? CANCER_QUESTIONS.slice(0, 5).map((q) => renderQuestion(q))
                     : CANCER_QUESTIONS.slice(5).map((q) => renderQuestion(q))
                   }
@@ -487,7 +557,7 @@ export default function QuestionnaireForm({
                   className="h-14 px-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
                   id="submit-assessment"
                 >
-                  Analyze My Results
+                  {isAsha ? 'Analyze Patient Results' : 'Analyze My Results'}
                 </Button>
               )}
             </div>

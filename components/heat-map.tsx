@@ -197,17 +197,6 @@ export default function HeatMap() {
                     >
                         Display All
                     </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setActiveFilter('critical')}
-                        className={cn(
-                            "rounded-2xl font-bold uppercase tracking-wider text-[10px] px-6 transition-all",
-                            activeFilter === 'critical' ? "bg-purple-600 text-white shadow-xl" : "text-muted-foreground hover:text-purple-600"
-                        )}
-                    >
-                        Difficult
-                    </Button>
                 </div>
             </div>
 
@@ -218,14 +207,14 @@ export default function HeatMap() {
                     className={cn(
                         "group relative overflow-hidden p-8 border-none rounded-[2.5rem] transition-all cursor-pointer shadow-sm border-l-4",
                         activeFilter === 'critical'
-                            ? "bg-purple-600 text-white border-purple-800 scale-[1.02] shadow-purple-200"
-                            : "bg-purple-500/5 hover:bg-purple-500/10 border-purple-500/20"
+                            ? "bg-primary text-white border-primary/20 scale-[1.02] shadow-primary/20"
+                            : "bg-primary/5 hover:bg-primary/10 border-primary/20"
                     )}
                 >
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-bl-[100%] transition-all group-hover:scale-110" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-[100%] transition-all group-hover:scale-110" />
                     <div className="relative z-10 flex flex-col items-center text-center space-y-1">
-                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'critical' ? "text-white" : "text-purple-600")}>{stats.critical}</span>
-                        <span className={cn("text-xs font-bold uppercase tracking-[0.2em]", activeFilter === 'critical' ? "text-white/80" : "text-purple-600/60")}>Difficult Conditions</span>
+                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'critical' ? "text-white" : "text-primary")}>{stats.critical}</span>
+                        <span className={cn("text-xs font-black uppercase tracking-[0.2em]", activeFilter === 'critical' ? "text-white/80" : "text-primary/60")}>Critical Needs</span>
                     </div>
                 </Card>
 
@@ -234,14 +223,14 @@ export default function HeatMap() {
                     className={cn(
                         "group relative overflow-hidden p-8 border-none rounded-[2.5rem] transition-all cursor-pointer shadow-sm border-l-4",
                         activeFilter === 'high'
-                            ? "bg-red-600 text-white border-red-800 scale-[1.02] shadow-red-200"
-                            : "bg-red-500/5 hover:bg-red-500/10 border-red-500/20"
+                            ? "bg-rose-400 text-white border-rose-500 scale-[1.02] shadow-rose-200"
+                            : "bg-rose-400/5 hover:bg-rose-400/10 border-rose-400/20"
                     )}
                 >
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-bl-[100%] transition-all group-hover:scale-110" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-[100%] transition-all group-hover:scale-110" />
                     <div className="relative z-10 flex flex-col items-center text-center space-y-1">
-                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'high' ? "text-white" : "text-red-600")}>{stats.high}</span>
-                        <span className={cn("text-xs font-bold uppercase tracking-[0.2em]", activeFilter === 'high' ? "text-white/80" : "text-red-600/60")}>Severe Irregularity</span>
+                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'high' ? "text-white" : "text-rose-400")}>{stats.high}</span>
+                        <span className={cn("text-xs font-black uppercase tracking-[0.2em]", activeFilter === 'high' ? "text-white/80" : "text-rose-400/60")}>Severe Irregularity</span>
                     </div>
                 </Card>
 
@@ -250,14 +239,14 @@ export default function HeatMap() {
                     className={cn(
                         "group relative overflow-hidden p-8 border-none rounded-[2.5rem] transition-all cursor-pointer shadow-sm border-l-4",
                         activeFilter === 'moderate'
-                            ? "bg-amber-500 text-white border-amber-700 scale-[1.02] shadow-amber-200"
-                            : "bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20"
+                            ? "bg-accent-foreground text-accent scale-[1.02] shadow-accent/20"
+                            : "bg-accent hover:bg-accent/80 text-accent-foreground border-accent-foreground/10"
                     )}
                 >
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-bl-[100%] transition-all group-hover:scale-110" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-[100%] transition-all group-hover:scale-110" />
                     <div className="relative z-10 flex flex-col items-center text-center space-y-1">
-                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'moderate' ? "text-white" : "text-amber-600")}>{stats.moderate}</span>
-                        <span className={cn("text-xs font-bold uppercase tracking-[0.2em]", activeFilter === 'moderate' ? "text-white/80" : "text-amber-600/60")}>Mild Concerns</span>
+                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'moderate' ? "text-white" : "text-accent-foreground")}>{stats.moderate}</span>
+                        <span className={cn("text-xs font-black uppercase tracking-[0.2em]", activeFilter === 'moderate' ? "text-white/80" : "text-accent-foreground/60")}>Mild Concerns</span>
                     </div>
                 </Card>
 
@@ -266,22 +255,22 @@ export default function HeatMap() {
                     className={cn(
                         "group relative overflow-hidden p-8 border-none rounded-[2.5rem] transition-all cursor-pointer shadow-sm border-l-4",
                         activeFilter === 'low'
-                            ? "bg-green-600 text-white border-green-800 scale-[1.02] shadow-green-200"
-                            : "bg-green-500/5 hover:bg-green-500/10 border-green-500/20"
+                            ? "bg-secondary-foreground text-secondary scale-[1.02] shadow-secondary/20"
+                            : "bg-secondary hover:bg-secondary/80 text-secondary-foreground border-secondary-foreground/10"
                     )}
                 >
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-bl-[100%] transition-all group-hover:scale-110" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-[100%] transition-all group-hover:scale-110" />
                     <div className="relative z-10 flex flex-col items-center text-center space-y-1">
-                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'low' ? "text-white" : "text-green-600")}>{stats.low}</span>
-                        <span className={cn("text-xs font-bold uppercase tracking-[0.2em]", activeFilter === 'low' ? "text-white/80" : "text-green-600/60")}>Healthy Rhythm</span>
+                        <span className={cn("text-5xl font-black tracking-tighter", activeFilter === 'low' ? "text-white" : "text-secondary-foreground")}>{stats.low}</span>
+                        <span className={cn("text-xs font-black uppercase tracking-[0.2em]", activeFilter === 'low' ? "text-white/80" : "text-secondary-foreground/60")}>Healthy Rhythm</span>
                     </div>
                 </Card>
             </div>
 
             {/* Real Interactive Map Section */}
             <div className="relative group">
-                <Card className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/20 to-lavender-500/20 rounded-[3.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000" />
-                <Card className="relative overflow-hidden rounded-[3rem] border-none shadow-2xl bg-white/80 dark:bg-black/40 backdrop-blur-2xl h-[700px] flex flex-col border border-white/20">
+                <Card className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20 rounded-[3.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000" />
+                <Card className="relative overflow-hidden rounded-[3rem] border-none shadow-2xl bg-white/60 dark:bg-black/40 backdrop-blur-3xl h-[700px] flex flex-col border border-white/20">
                     <div className="flex-1 relative z-0">
                         {filteredPoints.length > 0 ? (
                             <IndiaMap
@@ -304,7 +293,7 @@ export default function HeatMap() {
                         )}
                     </div>
 
-                    <div className="p-8 bg-background/60 backdrop-blur-xl border-t border-border/50 z-10">
+                    <div className="p-8 bg-background/40 backdrop-blur-2xl border-t border-border/50 z-10">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-black text-foreground tracking-tight uppercase">
@@ -315,17 +304,17 @@ export default function HeatMap() {
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-6">
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-black uppercase tracking-widest text-purple-600">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(147,51,234,0.5)]" /> Difficult Health
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black uppercase tracking-widest text-primary">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(225,29,72,0.5)]" /> Critical Needs
                                 </div>
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-[10px] font-black uppercase tracking-widest text-red-600">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> High Concern
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-rose-400/10 border border-rose-400/20 text-[10px] font-black uppercase tracking-widest text-rose-400">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(244,114,182,0.5)]" /> High Concern
                                 </div>
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-600">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> Monitoring
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent-foreground/20 text-[10px] font-black uppercase tracking-widest text-accent-foreground">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-accent-foreground shadow-[0_0_8px_rgba(253,186,116,0.5)]" /> Monitoring
                                 </div>
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-black uppercase tracking-widest text-green-600">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Healthy rhythm
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/20 border border-secondary-foreground/20 text-[10px] font-black uppercase tracking-widest text-secondary-foreground">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-secondary-foreground shadow-[0_0_8px_rgba(134,239,172,0.5)]" /> Healthy rhythm
                                 </div>
                             </div>
                         </div>

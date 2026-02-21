@@ -1,9 +1,10 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Heart, User, Calendar, Activity, Map, PlayCircle, LogOut, Menu } from 'lucide-react'
+import { Heart, User, Calendar, Activity, Map, PlayCircle, LogOut, Menu, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import Logo from './logo'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,6 +20,7 @@ interface HeaderProps {
     onNavigate?: (view: string) => void
     showNav?: boolean
     isLoggedIn?: boolean
+    userRole?: string
 }
 
 export default function Header({
@@ -26,10 +28,13 @@ export default function Header({
     userName = 'User',
     onNavigate,
     showNav = true,
-    isLoggedIn = false
+    isLoggedIn = false,
+    userRole
 }: HeaderProps) {
     const sidebarItems = [
         { icon: User, label: 'Profile', id: 'profile' },
+        ...(userRole === 'asha' ? [{ icon: Activity, label: 'Patient Registry', id: 'asha-patients' }] : []),
+        { icon: Shield, label: 'Wellness Hub', id: 'preventive-care' },
         { icon: Calendar, label: 'Menstrual Health', id: 'menstrual' },
         { icon: Activity, label: 'SheShield Screening', id: 'cancer' },
         { icon: Map, label: 'Heat Map', id: 'heatmap' },
@@ -38,20 +43,20 @@ export default function Header({
     ]
 
     return (
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40 py-4 px-4 md:px-8 shadow-sm">
+        <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-primary/5 py-4 px-4 md:px-8 shadow-sm transition-all duration-500">
             <div className="max-w-6xl mx-auto flex justify-between items-center w-full">
                 <div className="flex items-center gap-4">
                     {showNav && onNavigate && onStartAssessment && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="hover:bg-primary/10 rounded-full transition-colors">
+                                <Button variant="ghost" size="icon" className="hover:bg-primary/20 rounded-full transition-all duration-300 hover:rotate-90">
                                     <Menu className="w-6 h-6 text-primary" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl shadow-xl border-primary/10">
-                                <DropdownMenuLabel className="px-3 py-2 text-sm font-bold text-primary/80 uppercase tracking-widest">Dashboard</DropdownMenuLabel>
+                            <DropdownMenuContent align="start" className="w-64 p-2 rounded-[2rem] shadow-2xl border-none glass-card bg-white/80 dark:bg-black/80 backdrop-blur-2xl">
+                                <DropdownMenuLabel className="px-4 py-3 text-xs font-black text-primary/60 uppercase tracking-[0.2em]">Dashboard Navigator</DropdownMenuLabel>
                                 <DropdownMenuSeparator className="bg-primary/5" />
-                                <div className="space-y-1">
+                                <div className="space-y-1 mt-2">
                                     {sidebarItems.map((item) => (
                                         <DropdownMenuItem
                                             key={item.id}
@@ -63,24 +68,26 @@ export default function Header({
                                                 }
                                             }}
                                             className={cn(
-                                                "flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl transition-all duration-200 focus:bg-primary/10 focus:text-primary",
+                                                "flex items-center gap-3 cursor-pointer py-3.5 px-4 rounded-2xl transition-all duration-300 focus:bg-primary/10 focus:text-primary hover:translate-x-1",
                                                 item.id === 'logout' && "text-destructive focus:text-destructive focus:bg-destructive/10"
                                             )}
                                         >
-                                            <item.icon className="w-5 h-5 opacity-70" />
-                                            <span className="font-semibold">{item.label}</span>
+                                            <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center group-focus:bg-primary/20 transition-colors">
+                                                <item.icon className="w-4 h-4 opacity-70" />
+                                            </div>
+                                            <span className="font-bold text-sm tracking-tight">{item.label}</span>
                                         </DropdownMenuItem>
                                     ))}
                                 </div>
                                 <DropdownMenuSeparator className="bg-primary/5" />
-                                <div className="p-2">
-                                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50 border border-secondary">
+                                <div className="p-2 mt-2">
+                                    <div className="flex items-center gap-3 px-4 py-4 rounded-3xl bg-primary/5 border border-primary/10">
                                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-inner">
                                             <User className="w-5 h-5 text-primary" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold truncate text-foreground text-sm">{userName}</p>
-                                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">Health Profile Active</p>
+                                            <p className="font-black truncate text-foreground text-sm tracking-tight">{userName}</p>
+                                            <p className="text-[9px] text-primary/60 font-black uppercase tracking-widest">Health Profile Active</p>
                                         </div>
                                     </div>
                                 </div>
@@ -88,50 +95,46 @@ export default function Header({
                         </DropdownMenu>
                     )}
 
-                    <div
-                        className="cursor-pointer group flex items-center gap-2"
+                    <Logo
+                        className="cursor-pointer"
                         onClick={() => onNavigate?.('landing')}
-                    >
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Heart className="w-6 h-6 text-primary" fill="currentColor" />
-                        </div>
-                        <h1 className="text-2xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">
-                            OVIRA
-                        </h1>
-                    </div>
-                </div>
+                        size="md"
+                    />
+                </div >
 
                 <div className="flex items-center gap-3">
                     {isLoggedIn ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 transition-all p-0 overflow-hidden border border-primary/20">
+                                <Button variant="ghost" className="relative h-11 w-11 rounded-full bg-primary/10 hover:bg-primary/20 hover:scale-105 transition-all p-0 overflow-hidden border-2 border-primary/20 shadow-md">
                                     <div className="flex items-center justify-center h-full w-full text-primary font-black text-lg">
                                         {userName.charAt(0).toUpperCase()}
                                     </div>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl shadow-xl border-primary/10">
-                                <DropdownMenuLabel className="px-3 py-2">
+                            <DropdownMenuContent align="end" className="w-64 p-2 rounded-[2rem] shadow-2xl border-none glass-card bg-white/80 dark:bg-black/80 backdrop-blur-2xl">
+                                <DropdownMenuLabel className="px-4 py-3">
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-bold leading-none">{userName}</p>
-                                        <p className="text-xs leading-none text-muted-foreground italic">Health Profile</p>
+                                        <p className="text-sm font-black leading-none">{userName}</p>
+                                        <p className="text-[10px] uppercase font-black tracking-widest text-primary/60 italic">
+                                            {userRole === 'asha' ? 'ASHA Worker Panel' : 'Personal Dashboard'}
+                                        </p>
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator className="bg-primary/5" />
                                 <DropdownMenuItem
                                     onClick={() => onNavigate?.('profile')}
-                                    className="flex items-center gap-2 cursor-pointer py-2.5 px-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                                    className="flex items-center gap-3 cursor-pointer py-3.5 px-4 rounded-2xl focus:bg-primary/10 focus:text-primary hover:translate-x-1 transition-all"
                                 >
                                     <User className="w-4 h-4 opacity-70" />
-                                    <span className="font-semibold text-sm">My Profile</span>
+                                    <span className="font-bold text-sm">Vital Profile</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onClick={() => onNavigate?.('logout')}
-                                    className="flex items-center gap-2 cursor-pointer py-2.5 px-3 rounded-xl text-destructive focus:text-destructive focus:bg-destructive/10"
+                                    className="flex items-center gap-3 cursor-pointer py-3.5 px-4 rounded-2xl text-destructive focus:text-destructive focus:bg-destructive/10 hover:translate-x-1 transition-all"
                                 >
                                     <LogOut className="w-4 h-4 opacity-70" />
-                                    <span className="font-semibold text-sm">Logout</span>
+                                    <span className="font-bold text-sm">Secure Logout</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -140,19 +143,19 @@ export default function Header({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="rounded-full border-primary/20 text-primary hover:bg-primary hover:text-white px-6 font-bold transition-all"
+                                className="rounded-full border-primary/30 text-primary hover:bg-primary hover:text-white px-8 h-10 font-black transition-all shadow-sm hover:shadow-primary/20"
                             >
                                 Login
                             </Button>
                         </Link>
                     )}
                 </div>
-            </div>
-            <div className="max-w-6xl mx-auto px-4 md:px-8 mt-2">
-                <p className="text-[10px] md:text-xs font-bold text-center text-muted-foreground/60 uppercase tracking-widest bg-muted/30 py-1.5 rounded-full border border-border/20">
-                    Important: Our tools are educational. Always consult a healthcare professional for clinical diagnosis.
+            </div >
+            <div className="max-w-6xl mx-auto px-4 md:px-8 mt-3">
+                <p className="text-[9px] font-black text-center text-primary/40 uppercase tracking-[0.3em] bg-primary/5 py-2 rounded-full border border-primary/10">
+                    Educational Excellence • Consult Your Physician
                 </p>
             </div>
-        </header>
+        </header >
     )
 }

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ShieldCheck, User, Users } from 'lucide-react'
 import Header from '@/components/header'
+import Logo from '@/components/logo'
 import supabase from '@/lib/supabaseClient'
 import { useUser, signOut } from '@/lib/auth'
 
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const router = useRouter()
   const { user, loading } = useUser()
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [role, setRole] = useState<'user' | 'asha'>('user')
@@ -26,15 +28,22 @@ export default function LoginPage() {
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault()
+    if (!phone) {
+      setMessage({ type: 'error', text: 'Phone number is mandatory.' })
+      return
+    }
     setLoadingLocal(true)
     setMessage(null)
     try {
+      // Primary identifier is phone, using email as secondary if provided
+      const signupEmail = email || `${phone}@ovira.internal`
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: signupEmail,
         password,
         options: {
           data: {
             name: name,
+            phone: phone,
             role: role
           }
         }
@@ -43,7 +52,13 @@ export default function LoginPage() {
 
       const userId = data?.user?.id
       if (userId) {
-        await supabase.from('profiles').upsert({ id: userId, email, name, role })
+        await supabase.from('profiles').upsert({
+          id: userId,
+          email: email || null,
+          phone: phone,
+          name,
+          role
+        })
       }
 
       // Redirect directly to main page
@@ -60,7 +75,32 @@ export default function LoginPage() {
     setLoadingLocal(true)
     setMessage(null)
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      let signinEmail = email
+
+      // If no email provided, try to find it via phone
+      if (!signinEmail && phone) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('phone', phone)
+          .single()
+
+        if (profile?.email) {
+          signinEmail = profile.email
+        } else {
+          // Fallback to internal format
+          signinEmail = `${phone}@ovira.internal`
+        }
+      }
+
+      if (!signinEmail) {
+        throw new Error('Please provide an email or phone number.')
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: signinEmail,
+        password
+      })
       if (error) throw error
       router.push('/')
     } catch (err: any) {
@@ -86,7 +126,7 @@ export default function LoginPage() {
                 <ShieldCheck className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-3xl font-black tracking-tight">Welcome back</CardTitle>
-              <CardDescription className="font-medium italic">{user.email}</CardDescription>
+              <CardDescription className="font-medium italic">{user?.user_metadata?.phone || user.email}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
               <p className="text-muted-foreground text-sm">You are currently logged in to your health portal.</p>
@@ -110,8 +150,8 @@ export default function LoginPage() {
       <Header showNav={false} onNavigate={() => router.push('/')} isLoggedIn={false} />
       <div className="flex-1 flex items-center justify-center p-4 py-12">
         <div className="w-full max-w-md space-y-8 animate-in fade-in duration-700">
-          <div className="text-center space-y-2">
-            <h1 className="text-5xl font-black tracking-tighter text-foreground">OVIRA</h1>
+          <div className="flex flex-col items-center text-center space-y-4">
+            <Logo size="xl" />
             <p className="text-muted-foreground font-medium italic">Empowering health with early validation.</p>
           </div>
 
@@ -130,7 +170,19 @@ export default function LoginPage() {
                 <form onSubmit={handleSignIn}>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="font-bold text-foreground/70 px-1">Email</Label>
+                      <Label htmlFor="phone" className="font-bold text-foreground/70 px-1">Phone Number (Mandatory)</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+91 00000 00000"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="h-12 rounded-xl bg-white/50 border-muted focus:border-primary font-bold"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="font-bold text-foreground/70 px-1">Email (Optional)</Label>
                       <Input
                         id="email"
                         type="email"
@@ -138,7 +190,6 @@ export default function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="h-12 rounded-xl bg-white/50 border-muted focus:border-primary"
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -209,7 +260,19 @@ export default function LoginPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email-signup" className="font-bold text-foreground/70 px-1">Email</Label>
+                      <Label htmlFor="phone-signup" className="font-bold text-foreground/70 px-1">Phone Number (Mandatory)</Label>
+                      <Input
+                        id="phone-signup"
+                        type="tel"
+                        placeholder="+91 00000 00000"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="h-12 rounded-xl bg-white/50 border-muted focus:border-primary font-bold"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-signup" className="font-bold text-foreground/70 px-1">Email (Optional)</Label>
                       <Input
                         id="email-signup"
                         type="email"
@@ -217,7 +280,6 @@ export default function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="h-12 rounded-xl bg-white/50 border-muted focus:border-primary"
-                        required
                       />
                     </div>
                     <div className="space-y-2">

@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button'
+﻿import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { AlertCircle, Heart, Shield, Activity, ChevronRight, MapPin } from 'lucide-react'
+import { AlertCircle, Heart, Shield, Activity, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Header from './header'
 
@@ -9,10 +9,9 @@ interface LandingPageProps {
   userName?: string
   isLoggedIn?: boolean
   onNavigate: (view: string) => void
-  userRole?: string
 }
 
-export default function LandingPage({ onStartAssessment, userName = 'Ananya', isLoggedIn = false, onNavigate, userRole }: LandingPageProps) {
+export default function LandingPage({ onStartAssessment, userName = 'Ananya', isLoggedIn = false, onNavigate }: LandingPageProps) {
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 12) return 'Good morning'
@@ -30,7 +29,6 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
         userName={userName}
         onNavigate={onNavigate}
         isLoggedIn={isLoggedIn}
-        userRole={userRole}
       />
 
       <main className="flex-1 max-w-5xl mx-auto px-6 py-12 w-full space-y-12">
@@ -47,9 +45,7 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
           </h2>
 
           <p className="max-w-xl mx-auto text-lg text-muted-foreground font-medium leading-relaxed">
-            Hi {userName}, {greeting}! {userRole === 'asha'
-              ? "Ready to assist the community? Let's conduct a health assessment for a patient today."
-              : "Let's check in on your health today with our evidence-based, supportive assessment tool."}
+            Hi {userName}, {greeting}! Let's check in on your health today with our evidence-based, supportive assessment tool.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 max-w-3xl mx-auto">
@@ -72,13 +68,12 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             </Button>
 
             <Button
-              onClick={() => onNavigate(userRole === 'asha' ? 'asha-patients' : 'preventive-care')}
+              onClick={() => onNavigate('preventive-care')}
               size="lg"
-              variant="outline"
               className="h-16 px-6 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-black shadow-lg shadow-accent/10 flex flex-col items-center justify-center gap-1 group transition-all"
             >
-              <Heart className="w-5 h-5 group-hover:scale-110 transition-transform text-primary" />
-              <span className="text-xs uppercase tracking-widest">{userRole === 'asha' ? 'Patient Registry' : 'Wellness Hub'}</span>
+              <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs uppercase tracking-widest">Wellness Hub</span>
             </Button>
           </div>
         </section>
@@ -131,90 +126,48 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
           </Card>
         </section>
 
-        {/* Specialized Flows */}
-        <div className="space-y-8">
-          {userRole === 'asha' && (
-            <Card className="rounded-[2.5rem] p-8 bg-primary text-white border-none shadow-xl shadow-primary/20 overflow-hidden relative group cursor-pointer" onClick={() => onNavigate('asha-patients')}>
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
-                <Activity className="w-48 h-48" />
-              </div>
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                <div className="flex-1 space-y-4 text-center md:text-left">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-bold uppercase tracking-widest">
-                    ASHA Exclusive
-                  </div>
-                  <h3 className="text-4xl font-black tracking-tighter">Your Patient Command Center</h3>
-                  <p className="text-primary-foreground/80 font-medium max-w-xl">
-                    View your registry, track high-risk community members, and manage your follow-ups in one beautiful workspace.
-                  </p>
-                  <Button variant="secondary" className="rounded-full px-8 h-12 font-bold group">
-                    Open Registry
-                    <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          <Card className="rounded-[2.5rem] p-8 bg-primary/5 border-none">
-            <div className="flex flex-col md:flex-row items-center gap-10">
-              <div className="flex-1 space-y-4">
-                <h3 className="text-3xl font-bold tracking-tight">Wellness Hub & Initiatives</h3>
-                <p className="text-muted-foreground font-medium">
-                  Explore our community initiatives and educational resources to empower your health journey.
-                </p>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => onNavigate('preventive-care')}
-                    className="rounded-full font-bold h-11 px-6"
-                  >
-                    Explore Wellness Hub
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => onNavigate('heatmap')}
-                    className="rounded-full font-bold h-11 px-6 border-primary/20 hover:bg-primary/5"
-                  >
-                    View Risk Heatmap
-                  </Button>
-                </div>
-              </div>
-              <div className="w-full md:w-1/3 p-4 bg-background rounded-2xl border border-border">
-                <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Important: Our tools are educational. Always consult a healthcare professional for clinical diagnosis.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Initiative Sections */}
-        <section className="py-4 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 w-full">
+        {/* SheShield Initiative Section - Medium Sized */}
+        <section className="py-4 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 w-full px-4">
           <Card className="rounded-[2.5rem] overflow-hidden border-none shadow-xl glass-card bg-white/60 dark:bg-black/60 backdrop-blur-2xl">
             <div className="flex flex-col lg:flex-row">
+              {/* Content Side (Left) */}
               <div className="lg:w-3/5 p-8 md:p-12 flex flex-col justify-center space-y-6">
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
                     Community Initiative
                   </div>
                   <h2 className="text-3xl font-black tracking-tighter text-foreground leading-tight">
-                    SheShield Screening 💗🛡️
+                    SheShield Screening ≡ƒÆù≡ƒ¢í∩╕Å
                   </h2>
                 </div>
+
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
-                    A gentle women’s health screening that helps identify early risk signs related to breast, ovarian, and reproductive health.
-                  </p>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      A gentle womenΓÇÖs health screening that helps identify early risk signs related to breast, ovarian, and reproductive health.
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Designed to support ASHA workers in spreading awareness and guiding women across both rural and urban communities.
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
+                      Focused on early awareness, prevention, and helping women seek timely and safe medical care.
+                    </p>
+                  </div>
                 </div>
               </div>
+
+              {/* Image Side (Right) - Full Bleed */}
               <div className="lg:w-2/5 relative bg-primary/5 min-h-[300px]">
                 <img
                   src="/images/asha.png"
-                  alt="SheShield Initiative"
+                  alt="SheShield Official Banner"
                   className="w-full h-full object-cover transition-all duration-700 hover:scale-105"
                 />
               </div>
@@ -233,7 +186,7 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
                     Cycle Wellness
                   </div>
                   <h2 className="text-3xl font-black tracking-tighter text-foreground leading-tight">
-                    Menstrual Validation 🩸✨
+                    Menstrual Validation ≡ƒ⌐╕Γ£¿
                   </h2>
                 </div>
 
@@ -241,7 +194,7 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
                   <div className="flex gap-4">
                     <div className="mt-1 w-1.5 h-1.5 rounded-full bg-secondary shrink-0 shadow-[0_0_8px_rgba(var(--secondary),0.4)]" />
                     <p className="text-sm text-muted-foreground font-semibold leading-relaxed">
-                      Menstrual health reflects the overall well‑being of a woman’s reproductive system. Regular cycles, manageable flow, and minimal discomfort usually indicate healthy hormonal balance.
+                      Menstrual health reflects the overall wellΓÇæbeing of a womanΓÇÖs reproductive system. Regular cycles, manageable flow, and minimal discomfort usually indicate healthy hormonal balance.
                     </p>
                   </div>
                   <div className="flex gap-4">
@@ -270,8 +223,12 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
             </div>
           </Card>
         </section>
+
+
+
       </main>
 
+      {/* Footer */}
       <footer className="border-t border-border/30 py-8 text-center bg-muted/30 mt-auto">
         <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground/40">
           Developed with Care &copy; 2026 OVIRA Healthcare
