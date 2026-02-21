@@ -8,9 +8,6 @@ interface jsPDFWithPlugin extends jsPDF {
 
 const QUESTION_LABELS: Record<string, string> = {
     age: 'Patient Age',
-    height: 'Height (cm)',
-    weight: 'Weight (kg)',
-    bmi: 'Calculated BMI',
     periodsStopped: 'Has the periods completely stopped?',
     // Cancer
     breastChange: 'Breast lump or change in shape?',

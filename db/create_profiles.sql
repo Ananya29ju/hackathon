@@ -6,6 +6,7 @@ create extension if not exists "pgcrypto";
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
+  phone text,
   name text,
   role text,
   updated_at timestamptz default now()

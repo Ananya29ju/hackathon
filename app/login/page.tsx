@@ -37,6 +37,8 @@ export default function LoginPage() {
     try {
       // Primary identifier is phone, using email as secondary if provided
       const signupEmail = email || `${phone}@ovira.internal`
+      console.log('Attempting sign up with:', signupEmail)
+
       const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
         password,
@@ -52,13 +54,23 @@ export default function LoginPage() {
 
       const userId = data?.user?.id
       if (userId) {
-        await supabase.from('profiles').upsert({
+        const { error: upsertError } = await supabase.from('profiles').upsert({
           id: userId,
-          email: email || null,
+          email: signupEmail, // Use the generated signupEmail instead of just email
           phone: phone,
-          name,
-          role
+          name: name,
+          role: role,
+          updated_at: new Date().toISOString()
         })
+
+        if (upsertError) {
+          console.error('Profile Creation Error:', upsertError)
+          // Don't throw yet, maybe user was created in Auth but profile failed
+          // But for debugging, let's inform the user
+          setMessage({ type: 'error', text: `Account created but profile setup failed: ${upsertError.message}` })
+          setLoadingLocal(false)
+          return
+        }
       }
 
       // Redirect directly to main page

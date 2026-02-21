@@ -139,8 +139,6 @@ export default function QuestionnaireForm({
       age: '',
       patientName: '',
       patientPhone: '',
-      height: '165',
-      weight: '60',
       menstrualStage: '',
       periodsStopped: '',
       breastChange: '',
@@ -202,22 +200,6 @@ export default function QuestionnaireForm({
     if (step > 1) setStep(step - 1)
   }
 
-  const calculateBMI = () => {
-    if (!formData.height || !formData.weight) return null
-    const heightM = parseFloat(formData.height) / 100
-    const bmi = parseFloat(formData.weight) / (heightM * heightM)
-    return bmi
-  }
-
-  const getBMICategory = () => {
-    const bmi = calculateBMI()
-    if (bmi == null || isNaN(bmi)) return null
-    if (bmi < 18.5) return 'underweight'
-    if (bmi < 25) return 'normal'
-    if (bmi < 30) return 'overweight'
-    return 'obese'
-  }
-
   const handleSubmit = () => {
     let mRisk = 0
     if (isMenstrual) {
@@ -234,7 +216,7 @@ export default function QuestionnaireForm({
       nulliparity: false,
       lateFirstBirth: false,
       age: ageVal || 25,
-      bmiCategory: (getBMICategory() as any) || 'normal',
+      bmiCategory: 'normal',
       breastChange: formData.breastChange,
       nippleDischarge: formData.nippleDischarge,
       familyHistoryCancer: formData.familyHistoryCancer,
@@ -255,7 +237,7 @@ export default function QuestionnaireForm({
 
     const endometrialRisk = calculateEndometrialCancerRisk({
       age: ageVal || 25,
-      bmiCategory: (getBMICategory() as any) || 'normal',
+      bmiCategory: 'normal',
       diabetic: false,
       nulliparity: false,
       irregularMenses: formData.hormonalHistory !== 'No' && formData.hormonalHistory !== '',
@@ -273,7 +255,6 @@ export default function QuestionnaireForm({
       ovarianRisk: ovarianRisk,
       endometrialRisk: endometrialRisk,
       overallRisks,
-      bmi: calculateBMI(),
       assessmentType: assessmentType === 'both' ? 'both' : (isCancer ? 'cancer' : 'menstrual')
     })
   }

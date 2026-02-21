@@ -4,7 +4,8 @@ create extension if not exists "pgcrypto";
 -- Profiles table
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  email text not null,
+  email text,
+  phone text,
   name text,
   role text default 'user',
   updated_at timestamptz default now()
@@ -31,27 +32,23 @@ create table if not exists public.assessments (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
   
+  -- Patient Info
+  patient_name text,
+  patient_phone text,
+
   -- Input Data
   age integer,
-  height float,
-  weight float,
-  bmi float,
-  diabetic boolean,
-  menarche_age integer,
-  menopause_age integer,
-  cycle_regularity text,
-  number_of_children integer,
-  age_first_birth integer,
-  hormone_therapy boolean,
-  family_history_breast boolean,
-  family_history_ovarian boolean,
   
   -- Results
+  menstrual_score float,
   breast_risk_score float,
   ovarian_risk_score float,
   endometrial_risk_score float,
   primary_risk text,
   
+  -- Raw Data
+  symptoms jsonb,
+
   -- Geographic Data
   latitude float,
   longitude float,

@@ -72,9 +72,6 @@ export default function Home() {
         const assessmentData = {
           user_id: user.id,
           age: parseInt(data.age) || 0,
-          height: data.height ? parseFloat(data.height) : null,
-          weight: data.weight ? parseFloat(data.weight) : null,
-          bmi: data.bmi ? parseFloat(data.bmi) : null,
           patient_name: data.patientName || null,
           patient_phone: data.patientPhone || null,
           primary_risk: data.overallRisks?.primaryRisk || 'Unknown',
