@@ -6,8 +6,9 @@ import { Card } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, ChevronRight, Shield } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Shield, Sparkles, MessageSquare, Bot, ListTodo } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import ChatbotScreening from './chatbot-screening'
 import {
   calculateMenstrualRisk,
   calculateBreastCancerRisk,
@@ -133,6 +134,7 @@ export default function QuestionnaireForm({
   userName = 'User',
   userRole
 }: QuestionnaireFormProps) {
+  const [mode, setMode] = useState<'manual' | 'ai'>('manual')
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState(() => {
     const defaults = {
@@ -336,214 +338,259 @@ export default function QuestionnaireForm({
 
   return (
     <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background via-lavender-50/10 to-pink-50/10 selection:bg-primary/20">
-      <Header
-        onNavigate={onNavigate}
-        onStartAssessment={onStartAssessment}
-        showNav={true}
-        isLoggedIn={isLoggedIn}
-        userName={userName}
-      />
-      <div className="flex-1 flex flex-col items-center p-6 md:p-12">
-        <div className="w-full max-w-2xl space-y-10">
-          {/* Progress Header */}
-          <div className="space-y-6">
-            <div className="flex justify-between items-end">
-              <div className="space-y-1">
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-primary/60">Step {step} of {totalSteps}</p>
-                <h1 className="text-4xl font-black tracking-tighter text-foreground">
-                  {assessmentType === 'menstrual'
-                    ? 'Cycle Health'
-                    : assessmentType === 'cancer'
-                      ? 'SheShield Screening'
-                      : step === 1
-                        ? 'Full Health Review'
-                        : step <= (1 + menstrualSteps)
-                          ? 'Part 1: Menstrual Health'
-                          : 'Part 2: SheShield Screening'
-                  }
-                </h1>
-              </div>
-              <div className="text-right">
-                <span className="text-4xl font-black text-primary/10 select-none tabular-nums">{Math.round((step / totalSteps) * 100)}%</span>
-              </div>
-            </div>
+      <Header onNavigate={onNavigate} onStartAssessment={onStartAssessment} userName={userName} isLoggedIn={isLoggedIn} userRole={userRole} />
 
-            <div className="h-3 w-full bg-muted/40 rounded-full overflow-hidden flex gap-1 p-0.5 shadow-inner">
-              {Array.from({ length: totalSteps }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "h-full rounded-full transition-all duration-700 ease-in-out",
-                    i < step ? "bg-primary flex-[2] shadow-[0_0_15px_rgba(var(--primary),0.3)]" : "bg-muted-foreground/10 flex-1"
-                  )}
-                />
-              ))}
-            </div>
+      <div className="flex-1 max-w-6xl mx-auto px-6 py-12 w-full space-y-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Button
+            variant="ghost"
+            onClick={() => onNavigate('landing')}
+            className="group gap-2 text-muted-foreground hover:text-primary transition-all font-black text-xs uppercase tracking-widest hover:bg-primary/5 rounded-full px-6 w-fit"
+          >
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Dashboard
+          </Button>
+
+          {/* Mode Switcher */}
+          <div className="flex p-1.5 bg-primary/5 rounded-[2rem] border border-primary/10 shadow-inner w-fit self-center md:self-auto">
+            <button
+              onClick={() => setMode('manual')}
+              className={cn(
+                "flex items-center gap-2 px-6 py-3 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all",
+                mode === 'manual'
+                  ? "bg-white dark:bg-zinc-800 text-primary shadow-lg scale-105"
+                  : "text-muted-foreground hover:text-primary"
+              )}
+            >
+              <ListTodo className="w-4 h-4" />
+              Standard Form
+            </button>
+            <button
+              onClick={() => setMode('ai')}
+              className={cn(
+                "flex items-center gap-2 px-6 py-3 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all",
+                mode === 'ai'
+                  ? "bg-primary text-white shadow-lg scale-105 shadow-primary/20"
+                  : "text-muted-foreground hover:text-primary"
+              )}
+            >
+              <Bot className="w-4 h-4" />
+              AI Chat Mode
+            </button>
           </div>
+        </div>
 
-          <Card className="p-8 md:p-12 rounded-[3rem] border-none shadow-2xl shadow-primary/5 bg-white/90 dark:bg-black/40 backdrop-blur-xl rounded-[2.5rem] p-4 text-primary" style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-            {isAsha && step === 1 && (
-              <div className="space-y-10">
-                <div className="space-y-8 text-center md:text-left">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Patient Information</h2>
-                    <p className="text-muted-foreground font-medium italic">You are filling this as an ASHA worker. Please enter the name of the person you are assisting.</p>
+        {mode === 'ai' ? (
+          <div className="animate-in fade-in zoom-in-95 duration-700">
+            <ChatbotScreening
+              onSubmit={onSubmit}
+              assessmentType={assessmentType}
+              isLoggedIn={isLoggedIn}
+              userRole={userRole}
+            />
+          </div>
+        ) : (
+          <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            {/* Progress Header */}
+            <div className="space-y-6 mb-10">
+              <div className="flex justify-between items-end">
+                <div className="space-y-1">
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-primary/60">Step {step} of {totalSteps}</p>
+                  <h1 className="text-4xl font-black tracking-tighter text-foreground">
+                    {assessmentType === 'menstrual'
+                      ? 'Cycle Health'
+                      : assessmentType === 'cancer'
+                        ? 'SheShield Screening'
+                        : step === 1
+                          ? 'Full Health Review'
+                          : step <= (1 + menstrualSteps)
+                            ? 'Part 1: Menstrual Health'
+                            : 'Part 2: SheShield Screening'
+                    }
+                  </h1>
+                </div>
+                <div className="text-right">
+                  <span className="text-4xl font-black text-primary/10 select-none tabular-nums">{Math.round((step / totalSteps) * 100)}%</span>
+                </div>
+              </div>
+
+              <div className="h-3 w-full bg-muted/40 rounded-full overflow-hidden flex gap-1 p-0.5 shadow-inner">
+                {Array.from({ length: totalSteps }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-full rounded-full transition-all duration-700 ease-in-out",
+                      i < step ? "bg-primary flex-[2] shadow-[0_0_15px_rgba(var(--primary),0.3)]" : "bg-muted-foreground/10 flex-1"
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <Card className="p-8 md:p-12 rounded-[3rem] border-none shadow-2xl shadow-primary/5 bg-white/90 dark:bg-black/40 backdrop-blur-xl">
+              {isAsha && step === 1 && (
+                <div className="space-y-10">
+                  <div className="space-y-8 text-center md:text-left">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Patient Information</h2>
+                      <p className="text-muted-foreground font-medium italic">You are filling this as an ASHA worker. Please enter the name of the person you are assisting.</p>
+                    </div>
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="patientName" className="text-lg font-bold text-foreground/70 block px-1">What is the Patient's Name?</Label>
+                        <Input
+                          id="patientName"
+                          value={formData.patientName}
+                          onChange={(e) => handleInputChange('patientName', e.target.value)}
+                          className="h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all border-muted/30 focus:border-primary"
+                          placeholder="Enter Full Name"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label htmlFor="patientPhone" className="text-lg font-bold text-foreground/70 block px-1">What is the Patient's Phone Number?</Label>
+                        <Input
+                          id="patientPhone"
+                          type="tel"
+                          value={formData.patientPhone}
+                          onChange={(e) => handleInputChange('patientPhone', e.target.value)}
+                          className="h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all border-muted/30 focus:border-primary"
+                          placeholder="+91 XXXXX XXXXX"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="patientName" className="text-lg font-bold text-foreground/70 block px-1">What is the Patient's Name?</Label>
+                </div>
+              )}
+
+              {step === (isAsha ? 2 : 1) && (
+                <div className="space-y-10">
+                  <div className="space-y-8 text-center md:text-left">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Basic Information</h2>
+                      <p className="text-muted-foreground font-medium italic">
+                        {isAsha
+                          ? "The patient's age helps define the most relevant health questions."
+                          : "Your age helps define the most relevant health questions."
+                        }
+                      </p>
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-lg font-bold text-foreground/70 block px-1">
+                        {isAsha ? "How old is the patient?" : "How old are you?"}
+                      </Label>
                       <Input
-                        id="patientName"
-                        value={formData.patientName}
-                        onChange={(e) => handleInputChange('patientName', e.target.value)}
-                        className="h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all border-muted/30 focus:border-primary"
-                        placeholder="Enter Full Name"
+                        type="number"
+                        min="8"
+                        value={formData.age}
+                        onChange={(e) => handleInputChange('age', e.target.value)}
+                        className={cn(
+                          "h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all",
+                          formData.age && ageVal < 8
+                            ? "border-rose-400 bg-rose-50/50 text-rose-600 focus:border-rose-500"
+                            : "border-muted/30 focus:border-primary"
+                        )}
+                        placeholder="e.g. 42"
                         autoFocus
                       />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="patientPhone" className="text-lg font-bold text-foreground/70 block px-1">What is the Patient's Phone Number?</Label>
-                      <Input
-                        id="patientPhone"
-                        type="tel"
-                        value={formData.patientPhone}
-                        onChange={(e) => handleInputChange('patientPhone', e.target.value)}
-                        className="h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all border-muted/30 focus:border-primary"
-                        placeholder="+91 XXXXX XXXXX"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {step === (isAsha ? 2 : 1) && (
-              <div className="space-y-10">
-                <div className="space-y-8 text-center md:text-left">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Basic Information</h2>
-                    <p className="text-muted-foreground font-medium italic">
-                      {isAsha
-                        ? "The patient's age helps define the most relevant health questions."
-                        : "Your age helps define the most relevant health questions."
-                      }
-                    </p>
-                  </div>
-                  <div className="space-y-4">
-                    <Label className="text-lg font-bold text-foreground/70 block px-1">
-                      {isAsha ? "How old is the patient?" : "How old are you?"}
-                    </Label>
-                    <Input
-                      type="number"
-                      min="8"
-                      value={formData.age}
-                      onChange={(e) => handleInputChange('age', e.target.value)}
-                      className={cn(
-                        "h-16 rounded-[1.5rem] border-2 px-6 text-xl font-bold transition-all",
-                        formData.age && ageVal < 8
-                          ? "border-rose-400 bg-rose-50/50 text-rose-600 focus:border-rose-500"
-                          : "border-muted/30 focus:border-primary"
+                      {formData.age && ageVal < 8 && (
+                        <p className="text-rose-500 text-sm font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                          <Shield className="w-4 h-4" />
+                          Please enter an age of 8 or above
+                        </p>
                       )}
-                      placeholder="e.g. 42"
-                      autoFocus
-                    />
-                    {formData.age && ageVal < 8 && (
-                      <p className="text-rose-500 text-sm font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-                        <Shield className="w-4 h-4" />
-                        Please enter an age of 8 or above
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {menstrualActive && (
-              <div className="space-y-10">
-                {isUnder40 && (
-                  <div className="space-y-10">
-                    <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{menstrualSubStep === 1 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
-                    <div className="space-y-10">
-                      {menstrualSubStep === 1
-                        ? menstrualQuestions.slice(0, 5).map((q) => renderQuestion(q))
-                        : menstrualQuestions.slice(5).map((q) => renderQuestion(q))
-                      }
                     </div>
                   </div>
-                )}
-                {isOver40 && (
-                  <div className="space-y-10">
-                    {menstrualSubStep === 1 && (
-                      <div className="space-y-10">
-                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Period Status</h2>
-                        {renderQuestion({
-                          id: 'periodsStopped',
-                          label: 'Has the periods completely stopped?',
-                          options: ['Yes', 'No']
-                        })}
-                      </div>
-                    )}
-                    {menstrualSubStep > 1 && (
-                      <div className="space-y-10">
-                        <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{menstrualSubStep === 2 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
-                        <div className="space-y-10">
-                          {menstrualSubStep === 2
-                            ? menstrualQuestions.slice(0, 5).map((q) => renderQuestion(q))
-                            : menstrualQuestions.slice(5).map((q) => renderQuestion(q))
-                          }
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {cancerActive && (
-              <div className="space-y-10">
-                <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{cancerSubStep === 1 ? 'Clinical Symptoms' : 'Personal Patterns'}</h2>
-                <div className="space-y-10">
-                  {cancerSubStep === 1
-                    ? CANCER_QUESTIONS.slice(0, 5).map((q) => renderQuestion(q))
-                    : CANCER_QUESTIONS.slice(5).map((q) => renderQuestion(q))
-                  }
                 </div>
-              </div>
-            )}
-
-            <div className="flex gap-4 mt-12 pt-8 border-t-2 border-primary/10">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                disabled={step === 1}
-                className="h-14 px-8 rounded-2xl gap-2 font-bold hover:bg-primary/5 text-muted-foreground transition-all disabled:opacity-30"
-              >
-                <ChevronLeft className="w-5 h-5" />
-                Back
-              </Button>
-              <div className="flex-1" />
-              {step < totalSteps ? (
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                  className="h-14 px-10 rounded-2xl gap-2 bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
-                >
-                  Continue
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!canProceed()}
-                  className="h-14 px-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
-                  id="submit-assessment"
-                >
-                  {isAsha ? 'Analyze Patient Results' : 'Analyze My Results'}
-                </Button>
               )}
-            </div>
-          </Card>
-        </div>
+
+              {menstrualActive && (
+                <div className="space-y-10">
+                  {isUnder40 && (
+                    <div className="space-y-10">
+                      <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{menstrualSubStep === 1 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
+                      <div className="space-y-10">
+                        {menstrualSubStep === 1
+                          ? menstrualQuestions.slice(0, 5).map((q) => renderQuestion(q))
+                          : menstrualQuestions.slice(5).map((q) => renderQuestion(q))
+                        }
+                      </div>
+                    </div>
+                  )}
+                  {isOver40 && (
+                    <div className="space-y-10">
+                      {menstrualSubStep === 1 && (
+                        <div className="space-y-10">
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">Period Status</h2>
+                          {renderQuestion({
+                            id: 'periodsStopped',
+                            label: 'Has the periods completely stopped?',
+                            options: ['Yes', 'No']
+                          })}
+                        </div>
+                      )}
+                      {menstrualSubStep > 1 && (
+                        <div className="space-y-10">
+                          <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{menstrualSubStep === 2 ? 'Cycle Analysis' : 'Hormonal Indicators'}</h2>
+                          <div className="space-y-10">
+                            {menstrualSubStep === 2
+                              ? menstrualQuestions.slice(0, 5).map((q) => renderQuestion(q))
+                              : menstrualQuestions.slice(5).map((q) => renderQuestion(q))
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {cancerActive && (
+                <div className="space-y-10">
+                  <h2 className="text-3xl font-black text-foreground/80 tracking-tight">{cancerSubStep === 1 ? 'Clinical Symptoms' : 'Personal Patterns'}</h2>
+                  <div className="space-y-10">
+                    {cancerSubStep === 1
+                      ? CANCER_QUESTIONS.slice(0, 5).map((q) => renderQuestion(q))
+                      : CANCER_QUESTIONS.slice(5).map((q) => renderQuestion(q))
+                    }
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4 mt-12 pt-8 border-t-2 border-primary/10">
+                <Button
+                  variant="ghost"
+                  onClick={handleBack}
+                  disabled={step === 1}
+                  className="h-14 px-8 rounded-2xl gap-2 font-bold hover:bg-primary/5 text-muted-foreground transition-all disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  Back
+                </Button>
+                <div className="flex-1" />
+                {step < totalSteps ? (
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className="h-14 px-10 rounded-2xl gap-2 bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                  >
+                    Continue
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!canProceed()}
+                    className="h-14 px-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                    id="submit-assessment"
+                  >
+                    {isAsha ? 'Analyze Patient Results' : 'Analyze My Results'}
+                  </Button>
+                )}
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )
