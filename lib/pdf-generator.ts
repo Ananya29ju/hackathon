@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
 
 // Define the type for the autotable plugin on jsPDF

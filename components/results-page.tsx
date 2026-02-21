@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -11,7 +10,7 @@ import {
   RotateCcw,
   Calendar,
   MapPin,
-  FileText,
+
   Stethoscope,
   AlertCircle,
   Copy,
@@ -45,7 +44,6 @@ const RISK_CONFIG = {
     recommendation: "We recommend continuing routine screenings and monitoring any new or unusual symptoms.",
     icon: <Shield className="w-6 h-6 text-emerald-500" />,
     buttons: [
-      { label: "Schedule Routine Check-up", icon: <Calendar className="w-4 h-4 text-emerald-400" /> },
       { label: "View Preventive Care Tips", icon: <Heart className="w-4 h-4 text-emerald-400" /> }
     ]
   },
@@ -58,8 +56,7 @@ const RISK_CONFIG = {
     recommendation: "We recommend scheduling a gynecological consultation within the next few weeks for further assessment.",
     icon: <Activity className="w-6 h-6 text-amber-500" />,
     buttons: [
-      { label: "Find Nearby Women’s Clinics", icon: <MapPin className="w-4 h-4 text-amber-400" /> },
-      { label: "Download Your Report", icon: <FileText className="w-4 h-4 text-amber-400" /> }
+      { label: "Find Nearby Women’s Clinics", icon: <MapPin className="w-4 h-4 text-amber-400" /> }
     ]
   },
   high: {
@@ -96,7 +93,6 @@ export default function ResultsPage({
   onNavigate,
   onStartAssessment,
   onContinueToCancer,
-  showCancerPrompt,
   isLoggedIn = false,
   userName = 'User',
   userRole
@@ -113,18 +109,32 @@ export default function ResultsPage({
   const isAsha = userRole === 'asha'
   const patientTarget = results.patientName || 'the patient'
 
-  const getLocalizedConfig = (baseConfig: any) => {
-    if (!isAsha) return baseConfig
+  const getLocalizedConfig = (base: any) => {
+    // Correctly clone the config while preserving React components (icons)
+    const config = {
+      ...base,
+      buttons: [...base.buttons]
+    }
+
+    if (isMenstrualOnly) {
+      config.buttons = config.buttons.map((btn: any) =>
+        btn.label.toLowerCase().includes('preventive')
+          ? { label: "Start She Shield Screening", icon: <Shield className="w-4 h-4 text-primary" /> }
+          : btn
+      )
+    }
+
+    if (!isAsha) return config
 
     return {
-      ...baseConfig,
-      message: baseConfig.message
+      ...config,
+      message: config.message
         .replace(/Your responses/g, `${patientTarget}'s responses`)
         .replace(/your responses/g, `${patientTarget}'s responses`),
-      support: baseConfig.support
+      support: config.support
         .replace(/Maintaining regular health check-ups/g, `Helping ${patientTarget} maintain regular health check-ups`)
         .replace(/will help you stay on track/g, `will help ${patientTarget} stay on track`),
-      recommendation: baseConfig.recommendation
+      recommendation: config.recommendation
         .replace(/We recommend/g, `We recommend ${patientTarget}`)
         .replace(/scheduling an/g, `schedules an`)
         .replace(/Please visit/g, `Please guide ${patientTarget} to visit`),
@@ -132,27 +142,6 @@ export default function ResultsPage({
   }
 
   const config = getLocalizedConfig(RISK_CONFIG[category])
-
-  const [copied, setCopied] = useState(false)
-
-  const handleCopySummary = () => {
-    const summary = `
-HEALTH ASSESSMENT SUMMARY (Educational Only)
-Date: ${new Date().toLocaleDateString()}
-${isAsha ? `Patient: ${results.patientName || 'N/A'}\nPhone: ${results.patientPhone || 'N/A'}` : ''}
-Profile: ${results.age} yrs, BMI: ${Math.round(results.bmi * 10) / 10}
-
-PRIMARY ANALYSIS: ${isMenstrualOnly ? 'Hormonal Stability' : (results.overallRisks?.risks?.[primaryRiskKey]?.name || 'N/A')}
-Risk Category: ${category.toUpperCase()}
-Risk Score: ${score}/100
-
-NOTES: These results were generated using a digital self-assessment tool and are intended for clinical discussion.
-    `.trim()
-
-    navigator.clipboard.writeText(summary)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   const handleHealthcareAction = (label: string) => {
     if (navigator.geolocation) {
@@ -169,12 +158,15 @@ NOTES: These results were generated using a digital self-assessment tool and are
 
         if (url) {
           window.open(url, '_blank');
-        } else if (label.toLowerCase().includes('report')) {
-          alert("Preparing your health report for download...");
-        } else if (label.toLowerCase().includes('tips')) {
-          onNavigate('videos');
+
+        } else if (label.toLowerCase().includes('tips') || label.toLowerCase().includes('shield')) {
+          if (label.toLowerCase().includes('shield')) {
+            onContinueToCancer?.();
+          } else {
+            onNavigate('preventive-care');
+          }
         }
-      }, (error) => {
+      }, () => {
         let url = '';
         if (label.toLowerCase().includes('hospital') || label.toLowerCase().includes('clinic')) {
           const query = label.toLowerCase().includes('women') ? 'womens+clinics' : 'cancer+hospitals';
@@ -202,15 +194,11 @@ NOTES: These results were generated using a digital self-assessment tool and are
         {/* Header Section */}
         <div className="text-center space-y-6 max-w-2xl animate-in fade-in slide-in-from-top-4 duration-1000">
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground transition-all">
-            {results.patientName ? `${results.patientName}'s Health Insight Summary` : 'Your Health Insight Summary'}
+            {results.patientName ? `${results.patientName}'s Menstrual Health Insight Summary` : 'Your Health Insight Summary'}
           </h1>
           <div className="space-y-3">
             <p className="text-muted-foreground font-medium italic text-lg">
               Important: Our tools are educational. Always consult a healthcare professional for clinical diagnosis.
-            </p>
-            <p className="text-primary/60 text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 bg-primary/5 py-2.5 px-6 rounded-full w-fit mx-auto border border-primary/10 shadow-sm">
-              <Activity className="w-3.5 h-3.5" />
-              AI-Generated Analysis: Use as educational guidance only
             </p>
           </div>
         </div>
@@ -222,7 +210,7 @@ NOTES: These results were generated using a digital self-assessment tool and are
           </div>
 
           <div className="relative flex flex-col items-center space-y-12 text-center">
-            {/* Dynamic Speedometer - Only one as requested */}
+            {/* Dynamic Speedometer */}
             {results.assessmentType === 'both' ? (
               <div className="w-full flex flex-col md:flex-row items-center justify-center gap-12 py-10 scale-[0.85] md:scale-100 transition-all">
                 <div className="space-y-4">
@@ -285,7 +273,10 @@ NOTES: These results were generated using a digital self-assessment tool and are
             </div>
 
             {/* Dynamic Action Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700">
+            <div className={cn(
+              "grid gap-6 w-full pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700",
+              config.buttons.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : "grid-cols-1 md:grid-cols-2"
+            )}>
               {config.buttons.map((btn: { label: string, icon: React.ReactNode }, idx: number) => (
                 <Button
                   key={idx}
@@ -304,51 +295,40 @@ NOTES: These results were generated using a digital self-assessment tool and are
           </div>
         </Card>
 
-        <div className="flex flex-col gap-8 items-center justify-center pt-8 animate-in fade-in duration-1000 delay-1000">
-          <Button
-            onClick={handleCopySummary}
-            variant="outline"
-            className={cn(
-              "h-16 px-10 rounded-[2rem] gap-3 font-black transition-all hover:scale-105 border-2",
-              copied ? "border-emerald-500 text-emerald-600 bg-emerald-50" : "border-primary/20 text-primary hover:bg-primary/5"
-            )}
-          >
-            {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-            {copied ? "Copied to Clipboard!" : isAsha ? "Share Report with Patient" : "Copy Summary for Doctor"}
-          </Button>
-
-          {showCancerPrompt && onContinueToCancer && (
-            <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-xl font-bold text-foreground">
-                Would you like to perform a SheShield Screening as well?
-              </p>
+        <div className="flex flex-col gap-8 items-center justify-center pt-8 animate-in fade-in duration-1000 delay-1000 w-full">
+          <div className="flex flex-col md:flex-row gap-4 w-full justify-center px-4">
+            {results.assessmentType === 'menstrual' && (
               <Button
                 onClick={onContinueToCancer}
-                className="group h-16 px-10 rounded-[2rem] gap-3 bg-primary text-white font-black transition-all shadow-lg shadow-primary/20 hover:scale-105"
+                className="h-16 px-10 rounded-[2rem] gap-3 bg-primary text-white font-black transition-all shadow-lg shadow-primary/20 hover:scale-105"
               >
-                Yes, Start SheShield Scanning
-                <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <Shield className="w-5 h-5" />
+                Start She Shield Screening
               </Button>
-            </div>
-          )}
+            )}
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={() => onNavigate('preventive-care')}
-              variant="outline"
-              className="h-16 px-10 rounded-[2rem] gap-3 font-black text-accent-foreground border-accent/20 hover:bg-accent/5 transition-all hover:scale-105"
-            >
-              <Heart className="w-5 h-5 text-accent" />
-              Visit Wellness Hub
-            </Button>
-            <Button
-              onClick={() => onNavigate('heatmap')}
-              variant="outline"
-              className="h-16 px-10 rounded-[2rem] gap-3 font-black text-primary border-primary/20 hover:bg-primary/5 transition-all hover:scale-105"
-            >
-              <MapPin className="w-5 h-5" />
-              Explore Health Map
-            </Button>
+            {results.assessmentType === 'both' && (
+              <Button
+                onClick={() => onNavigate('preventive-care')}
+                variant="outline"
+                className="h-16 px-10 rounded-[2rem] gap-3 font-black text-accent-foreground border-accent/20 hover:bg-accent/5 transition-all hover:scale-105"
+              >
+                <Heart className="w-5 h-5 text-accent" />
+                Visit Wellness Hub
+              </Button>
+            )}
+
+            {results.assessmentType !== 'cancer' && (
+              <Button
+                onClick={() => onNavigate('heatmap')}
+                variant="outline"
+                className="h-16 px-10 rounded-[2rem] gap-3 font-black text-primary border-primary/20 hover:bg-primary/5 transition-all hover:scale-105"
+              >
+                <MapPin className="w-5 h-5" />
+                Explore Health Map
+              </Button>
+            )}
+
             <Button
               onClick={onRetake}
               variant="ghost"
@@ -374,7 +354,7 @@ NOTES: These results were generated using a digital self-assessment tool and are
             <span>supports early awareness and preventive care. You are taking a positive step toward your health.</span>
           </p>
         </footer>
-      </main >
-    </div >
+      </main>
+    </div>
   )
 }

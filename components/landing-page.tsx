@@ -54,21 +54,21 @@ export default function LandingPage({ onStartAssessment, userName = 'Ananya', is
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 max-w-3xl mx-auto">
             <Button
-              onClick={() => onStartAssessment('cancer')}
-              size="lg"
-              className="h-16 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 flex flex-col items-center justify-center gap-1 group transition-all"
-            >
-              <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="text-xs uppercase tracking-widest">She Shield</span>
-            </Button>
-
-            <Button
               onClick={() => onStartAssessment('menstrual')}
               size="lg"
               className="h-16 px-6 rounded-2xl bg-secondary text-secondary-foreground hover:bg-secondary/90 font-black shadow-lg shadow-secondary/10 flex flex-col items-center justify-center gap-1 group transition-all"
             >
               <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span className="text-xs uppercase tracking-widest">Menstrual Validation</span>
+            </Button>
+
+            <Button
+              onClick={() => onStartAssessment('cancer')}
+              size="lg"
+              className="h-16 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 flex flex-col items-center justify-center gap-1 group transition-all"
+            >
+              <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs uppercase tracking-widest">She Shield</span>
             </Button>
 
             <Button
